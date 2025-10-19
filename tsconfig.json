@@ -40,5 +40,14 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+  "include": [
+    "tests/**/*.ts", // 雙星號**表示零層或是多層目錄
+    "playwright.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".github",
+    ".gitignore",
+  ]  
 }
