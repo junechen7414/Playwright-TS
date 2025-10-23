@@ -1,20 +1,20 @@
-import { expect, pageObjectTest as test } from '../fixtures/PageObjects.fixture.js';
+import { expect, test } from '../fixtures/chainFixtures.js';
 
 test.describe('Login Tests', () => {
     test.describe('Successful Login Scenarios', () => {
-        test('Successful Login with Valid Credentials', async ({ loginPage }) => {
-            await loginPage.login('standard_user', 'secret_sauce');
+        test('Successful Login with Valid Credentials', async ({ loginPage, standardUserData }) => {
+            await loginPage.login(standardUserData.username, standardUserData.password);
             await expect(loginPage.page).toHaveURL('https://www.saucedemo.com/inventory.html');
         });
     });
     test.describe('Unsuccessful Login Scenarios', () => {
-        test('Unsuccessful Login with Invalid Credentials', async ({ loginPage }) => {
-            await loginPage.login('invalid_user', 'invalid_password');
+        test('Unsuccessful Login with Invalid Credentials', async ({ loginPage, invalidUserData }) => {
+            await loginPage.login(invalidUserData.username, invalidUserData.password);
             const errorMessage = await loginPage.getErrorMessage();
             expect(errorMessage).toBe('Epic sadface: Username and password do not match any user in this service');
         });
-        test('Unsuccessful Login with Locked out Credentials', async ({ loginPage }) => {
-            await loginPage.login('locked_out_user', 'secret_sauce');
+        test('Unsuccessful Login with Locked out Credentials', async ({ loginPage, lockedUserData }) => {
+            await loginPage.login(lockedUserData.username, lockedUserData.password);
             const errorMessage = await loginPage.getErrorMessage();
             expect(errorMessage).toBe('Epic sadface: Sorry, this user has been locked out.');
         });
