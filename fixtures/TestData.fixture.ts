@@ -18,13 +18,13 @@ type DataFixtures = {
 };
 
 export const dataTest = baseTest.extend<DataFixtures>({
-    standardUserData: () => ({
-        ...credentials.standard
-    }),
-    lockedUserData: () => ({
-        ...credentials.lockedOut
-    }),
-    invalidUserData: () => ({
-        ...credentials.invalid
-    }),
+    standardUserData: async ({}, use) => {
+        await use({ ...credentials.standard });
+    },
+    lockedUserData: async ({}, use) => {
+        await use({ ...credentials.lockedOut });
+    },
+    invalidUserData: async ({}, use) => {
+        await use({ ...credentials.invalid });
+    },
 });
