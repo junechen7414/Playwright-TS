@@ -13,4 +13,3 @@ export const pageObjectTest = baseTest.extend<PageObject>({
     },
 });
 
-export { expect } from '@playwright/test';
