@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 
 export class LoginPage {
     readonly page: Page;
@@ -21,8 +21,8 @@ export class LoginPage {
         await this.passwordInput.fill(password);
         await this.loginButton.click();
     }
-    async getErrorMessage() {
-        return await this.errorMessage.textContent();
+    async verifyErrorMessage(expectedMessage: string) {
+        await expect(this.errorMessage).toHaveText(expectedMessage);
     }
     async bypassLogin(targetPage: string) {
         await this.page.goto(`${targetPage}`);
