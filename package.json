@@ -5,10 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npx ts-node index.ts",
     "eslint-check-only": "npx eslint .",
     "eslint-fix": "npx eslint . --fix",
-    "prettier": "npx prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
