@@ -1,12 +1,16 @@
-import { type Page, expect } from '@playwright/test';
+import { type Page, expect, type Locator } from '@playwright/test';
+import { HamburgerMenu } from '../components/HamburgerMenu.js';
 
 export class ProductPage {
 	readonly page: Page;
-	readonly CartIcon;
+	readonly CartIcon: Locator;
+
+	readonly hamburgerMenu: HamburgerMenu;
 
 	constructor(page: Page) {
 		this.page = page;
 		this.CartIcon = page.locator('[data-test="shopping-cart-badge"]');
+		this.hamburgerMenu = new HamburgerMenu(page);
 	}
 
 	// 產生特定商品的定位器
@@ -43,6 +47,10 @@ export class ProductPage {
 		await expect(this.CartIcon).toHaveText(String(count));
 	}
 
+	async verifyCartIconNotVisible() {
+		await expect(this.CartIcon).toBeHidden();
+	}
+
 	async viewProductDetails(productName: string) {
 		const productContainer = this.getProductContainer(productName);
 		await productContainer.locator('[data-test="inventory-item-name"]').click();
@@ -53,5 +61,9 @@ export class ProductPage {
 	}
 	async verifyOnProductListPage() {
 		await expect(this.page).toHaveURL(/.*inventory.html/);
+	}
+
+	async goToCartPage() {
+		await this.CartIcon.click();
 	}
 }

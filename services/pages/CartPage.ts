@@ -1,0 +1,31 @@
+import { type Page, type Locator, expect } from '@playwright/test';
+import { HamburgerMenu } from '../components/HamburgerMenu.js';
+
+export class CartPage {
+	readonly page: Page;
+	readonly checkoutButton: Locator;
+	readonly continueShoppingButton: Locator;
+	readonly cartItems: Locator;
+	readonly hamburgerMenu: HamburgerMenu;
+	constructor(page: Page) {
+		this.page = page;
+		this.checkoutButton = page.locator('[data-test="checkout"]');
+		this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
+		this.cartItems = page.locator('.inventory_item_name');
+		this.hamburgerMenu = new HamburgerMenu(page);
+	}
+
+	async continueShopping() {
+		await this.continueShoppingButton.click();
+	}
+
+	async verifyCartItems(productNames: string[]) {
+		for (const productName of productNames) {
+			await expect(this.cartItems.filter({ hasText: productName })).toBeVisible();
+		}
+	}
+
+	async verifyCartItemCount(count: number) {
+		await expect(this.cartItems).toHaveCount(count);
+	}
+}
