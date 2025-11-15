@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
         container:
             image: mcr.microsoft.com/playwright:v1.56.1-noble
-            # options: --user 1001
+            options: --user 1001
         steps:
             - uses: actions/checkout@v5
             - uses: actions/setup-node@v5
@@ -22,7 +22,5 @@ jobs:
                   node-version: lts/*
             - name: Install dependencies
               run: npm ci
-            - name: Install Playwright browsers
-              run: npx playwright install msedge
             - name: Run Playwright tests
               run: npx playwright test
