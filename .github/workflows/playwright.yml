@@ -1,5 +1,5 @@
 name: Playwright Tests
-# This workflow runs Playwright tests on pull request events to the Saucedemo, main, and master branches.
+# This workflow runs Playwright tests on push and pull request events to the Saucedemo, main, and master branches.
 # It uses the official Playwright Docker image to ensure a consistent testing environment.
 on:
     # push:
