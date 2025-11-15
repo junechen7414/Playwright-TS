@@ -23,6 +23,6 @@ jobs:
             - name: Install dependencies
               run: npm ci
             - name: Install Playwright browsers
-              run: sudo npx playwright install msedge
+              run: npx playwright install msedge
             - name: Run Playwright tests
               run: npx playwright test
