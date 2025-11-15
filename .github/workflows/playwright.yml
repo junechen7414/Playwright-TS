@@ -22,5 +22,7 @@ jobs:
                   node-version: lts/*
             - name: Install dependencies
               run: npm ci
+            - name: Install Playwright browsers
+              run: npx playwright install msedge
             - name: Run Playwright tests
               run: npx playwright test
