@@ -25,3 +25,4 @@ jobs:
             - name: Install Playwright browsers
               run: npx playwright install msedge --with-deps
             - name: Run Playwright tests
+              run: npx playwright test
