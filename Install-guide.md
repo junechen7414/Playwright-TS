@@ -33,12 +33,29 @@
 ```bash
 npm install --save-dev \
   playwright \
-  typescript 
+  typescript
 ```
+
+加入專案的話:
+根據 package.json 安裝所有必要的 Node.js 套件（dependencies），包括 @playwright/test 和 TypeScript 相關的套件。
 
 ---
 
-## 3. 設定 TypeScript
+## 步驟3: 安裝playwright 擴充工具，並安裝playwright browser等
+
+第一次建立專案執行以下指令，會有互動式指令介面詢問，依序設定要安裝哪些套件:
+
+```bash
+npm init playwright@latest
+```
+
+若是加入專案的話執行以下指令來安裝瀏覽器，加上參數可以選擇安裝的瀏覽器如firefox,chromium:
+
+```bash
+npx playwright install
+```
+
+## 步驟4: 設定 TypeScript
 
 設定 TypeScript 以正確編譯測試檔案。
 
@@ -54,17 +71,17 @@ npm install --save-dev \
 
     ```json
     {
-      "compilerOptions": {
-        "module": "nodenext",
-        "target": "es2022",
-        "lib": ["es2022", "dom"],
-        "types": ["playwright/test", "node"],
-        "esModuleInterop": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "skipLibCheck": true
-      },
-      "include": ["**/*.ts"]
+    	"compilerOptions": {
+    		"module": "nodenext",
+    		"target": "es2022",
+    		"lib": ["es2022", "dom"],
+    		"types": ["playwright/test", "node"],
+    		"esModuleInterop": true,
+    		"strict": true,
+    		"forceConsistentCasingInFileNames": true,
+    		"skipLibCheck": true
+    	},
+    	"include": ["**/*.ts"]
     }
     ```
 
