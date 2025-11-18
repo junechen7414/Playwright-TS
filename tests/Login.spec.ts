@@ -5,16 +5,13 @@ test.describe('Unsuccessful Login Scenarios', () => {
 		loginPage,
 		invalidUserData,
 		lockedUserData,
+		loginErrorData,
 	}) => {
-		await loginPage.login(invalidUserData.username, invalidUserData.password);
-		await loginPage.verifyErrorMessage(
-			'Epic sadface: Username and password do not match any user in this service',
-		);
 		await loginPage.login(lockedUserData.username, lockedUserData.password);
-		await loginPage.verifyErrorMessage('Epic sadface: Sorry, this user has been locked out.');
-		await loginPage.bypassLogin('/inventory.html');
-		await loginPage.verifyErrorMessage(
-			`Epic sadface: You can only access '/inventory.html' when you are logged in.`,
-		);
+		await loginPage.verifyErrorMessage(loginErrorData.lockedOutCredentialsMessage);
+		await loginPage.login(invalidUserData.username, invalidUserData.password);
+		await loginPage.verifyErrorMessage(loginErrorData.invalidCredentialsMessage);
+		await loginPage.bypassLogin(loginErrorData.bypassUrl);
+		await loginPage.verifyErrorMessage(loginErrorData.bypassLoginMessage);
 	});
 });
