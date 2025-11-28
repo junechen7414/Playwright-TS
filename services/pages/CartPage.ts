@@ -7,12 +7,14 @@ export class CartPage {
 	readonly continueShoppingButton: Locator;
 	readonly cartItems: Locator;
 	readonly hamburgerMenu: HamburgerMenu;
+	readonly cartTitle: Locator;
 	constructor(page: Page) {
 		this.page = page;
 		this.checkoutButton = page.locator('[data-test="checkout"]');
 		this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
 		this.cartItems = page.locator('.inventory_item_name');
 		this.hamburgerMenu = new HamburgerMenu(page);
+		this.cartTitle = page.locator('[data-test="title"]');
 	}
 
 	async goToCheckoutPage() {
@@ -31,5 +33,9 @@ export class CartPage {
 
 	async verifyCartItemCount(count: number) {
 		await expect(this.cartItems).toHaveCount(count);
+	}
+
+	async verifyOnCartPage() {
+		await expect.soft(this.cartTitle).toHaveText('Your Cart');
 	}
 }

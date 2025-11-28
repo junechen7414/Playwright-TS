@@ -9,6 +9,8 @@ export class CheckoutPage {
 	readonly finishButton: Locator;
 	readonly completeHeader: Locator;
 	readonly completeText: Locator;
+	readonly cancelButton: Locator;
+	readonly checkoutTitle: Locator;
 	constructor(page: Page) {
 		this.page = page;
 		this.firstNameInput = page.locator('[data-test="firstName"]');
@@ -18,6 +20,8 @@ export class CheckoutPage {
 		this.finishButton = page.locator('[data-test="finish"]');
 		this.completeHeader = page.locator('[data-test="complete-header"]');
 		this.completeText = page.locator('[data-test="complete-text"]');
+		this.cancelButton = page.locator('[data-test="cancel"]');
+		this.checkoutTitle = page.locator('[data-test="title"]');
 	}
 
 	async fillCheckoutInformation(firstName: string, lastName: string, postalCode: string) {
@@ -37,5 +41,16 @@ export class CheckoutPage {
 	async verifyOrderCompletion() {
 		await expect(this.completeHeader).toBeVisible();
 		await expect(this.completeText).toBeVisible();
+	}
+
+	async verifyOnCheckoutStepOnePage() {
+		await expect.soft(this.checkoutTitle).toHaveText('Checkout: Your Information');
+	}
+	async verifyOnCheckoutStepTwoPage() {
+		await expect.soft(this.checkoutTitle).toHaveText('Checkout: Overview');
+	}
+
+	async cancelCheckout() {
+		await this.cancelButton.click();
 	}
 }
