@@ -1,18 +1,13 @@
 import { type Page, expect, type Locator } from '@playwright/test';
-import { HamburgerMenu } from '../components/HamburgerMenu.js';
-
 export class ProductPage {
 	readonly page: Page;
 	readonly cartIcon: Locator;
 	readonly productTitle: Locator;
 	readonly backToProductsButton: Locator;
-	readonly hamburgerMenu: HamburgerMenu;
 	readonly cartLink: Locator;
-
 	constructor(page: Page) {
 		this.page = page;
 		this.cartIcon = page.locator('[data-test="shopping-cart-badge"]');
-		this.hamburgerMenu = new HamburgerMenu(page);
 		this.productTitle = page.locator('[data-test="title"]');
 		this.backToProductsButton = page.locator('[data-test="back-to-products"]');
 		this.cartLink = page.locator('[data-test="shopping-cart-link"]');
@@ -36,17 +31,17 @@ export class ProductPage {
 		await expect.soft(removeButton).toBeVisible();
 	}
 
-	// async addMultipleProductsToCart(productNames: string[]) {
-	// 	for (const productName of productNames) {
-	// 		await this.addProductToCart(productName);
-	// 	}
-	// }
+	async addMultipleProductsToCart(productNames: string[]) {
+		for (const productName of productNames) {
+			await this.addProductToCart(productName);
+		}
+	}
 
-	// async verifyMultipleItemsStatusIsRemove(productNames: string[]) {
-	// 	for (const productName of productNames) {
-	// 		await this.verifyItemButtonStatusIsRemove(productName);
-	// 	}
-	// }
+	async verifyMultipleItemsStatusIsRemove(productNames: string[]) {
+		for (const productName of productNames) {
+			await this.verifyItemButtonStatusIsRemove(productName);
+		}
+	}
 
 	async verifyCartItemCount(count: number) {
 		await expect(this.cartIcon).toHaveText(String(count));

@@ -35,6 +35,7 @@ test.describe('Shopping Scenarios', () => {
 		loginPage,
 		standardUserData,
 		productPage,
+		hamburgerMenu,
 		cartPage,
 		productsToAdd,
 	}) => {
@@ -45,7 +46,7 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
 		// 流程3: 登出
-		await productPage.hamburgerMenu.logout();
+		await hamburgerMenu.logout();
 
 		// 流程4: 再次登入
 		await loginPage.login(standardUserData.username, standardUserData.password);
@@ -63,6 +64,7 @@ test.describe('Shopping Scenarios', () => {
 		loginPage,
 		standardUserData,
 		productPage,
+		hamburgerMenu,
 		productsToAdd,
 	}) => {
 		// 流程1: 登入
@@ -72,7 +74,7 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
 		// 流程3: 重設應用程式狀態
-		await productPage.hamburgerMenu.resetAppState();
+		await hamburgerMenu.resetAppState();
 
 		// --- 驗證點 (Assertion) ---
 		// 驗證點1: 確認購物車頁面無商品
