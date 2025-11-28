@@ -1,12 +1,14 @@
 import { LoginPage } from '../services/pages/LoginPage.js';
 import { ProductPage } from '../services/pages/ProductPage.js';
 import { CartPage } from '../services/pages/CartPage.js';
+import { CheckoutPage } from '../services/pages/CheckoutPage.js';
 import { test as baseTest } from '@playwright/test';
 
 type PageObject = {
 	loginPage: LoginPage;
 	productPage: ProductPage;
 	cartPage: CartPage;
+	checkoutPage: CheckoutPage;
 };
 
 export const pageObjectTest = baseTest.extend<PageObject>({
@@ -20,5 +22,8 @@ export const pageObjectTest = baseTest.extend<PageObject>({
 	},
 	cartPage: async ({ page }, use) => {
 		await use(new CartPage(page));
+	},
+	checkoutPage: async ({ page }, use) => {
+		await use(new CheckoutPage(page));
 	},
 });

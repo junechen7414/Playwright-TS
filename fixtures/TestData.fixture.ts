@@ -44,6 +44,20 @@ const productsToAdd = [
 ] as const;
 const productToView = 'Sauce Labs Backpack' as const;
 
+// 定義結帳人資料類型
+export type CheckoutPersonData = {
+	firstName: string;
+	lastName: string;
+	postalCode: string;
+};
+
+// 定義結帳人資料
+export const checkoutPersonData: CheckoutPersonData = {
+	firstName: 'Bobby',
+	lastName: 'Chen',
+	postalCode: '8787',
+};
+
 // 定義資料fixture類型
 type DataFixtures = {
 	standardUserData: UserCredential;
@@ -52,6 +66,7 @@ type DataFixtures = {
 	loginErrorData: ErrorDatas;
 	productsToAdd: Product[];
 	productToView: Product;
+	checkoutPersonData: CheckoutPersonData;
 };
 
 // 擴展基本測試fixture以包含資料fixture
@@ -73,5 +88,8 @@ export const dataTest = baseTest.extend<DataFixtures>({
 	},
 	productToView: async ({}, use) => {
 		await use(productToView);
+	},
+	checkoutPersonData: async ({}, use) => {
+		await use({ ...checkoutPersonData });
 	},
 });
