@@ -15,6 +15,10 @@ export class CartPage {
 		this.hamburgerMenu = new HamburgerMenu(page);
 	}
 
+	async goToCheckoutPage() {
+		this.checkoutButton.click();
+	}
+
 	async continueShopping() {
 		await this.continueShoppingButton.click();
 	}
