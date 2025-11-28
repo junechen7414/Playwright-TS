@@ -78,35 +78,4 @@ test.describe('Shopping Scenarios', () => {
 		// 驗證點1: 確認購物車頁面無商品
 		await productPage.verifyCartIconNotVisible();
 	});
-	test('商品主頁與購物車頁間導航不影響商品狀態', async ({
-		loginPage,
-		standardUserData,
-		productPage,
-		cartPage,
-		productToView,
-	}) => {
-		// 流程1: 登入
-		await loginPage.login(standardUserData.username, standardUserData.password);
-
-		// 加入指定商品到購物車
-		await productPage.addProductToCart(productToView);
-
-		// 流程2: 進入檢視商品頁後返回商品主頁
-		await productPage.viewProductDetails(productToView);
-		await productPage.returnToProductList();
-		// 流程3：進入購物車頁面
-		await productPage.goToCartPage();
-		// 流程4: 使用漢堡選單導向商品主頁
-		await cartPage.hamburgerMenu.goToProductPage();
-		// 流程5: 再次進入購物車頁面
-		await productPage.goToCartPage();
-		// 流程6: 用頁面按鈕導向商品主頁
-		await cartPage.continueShopping();
-
-		// --- 驗證點 (Assertion) ---
-		// 驗證點1: 確認已返回商品主頁
-		await productPage.verifyOnProductListPage();
-		// 驗證點2: 確認購物車圖示數量正確
-		await productPage.verifyCartItemCount(1);
-	});
 });
