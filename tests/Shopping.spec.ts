@@ -1,17 +1,19 @@
 import { test } from '../fixtures/chainFixtures.js';
 
 test.describe('Shopping Scenarios', () => {
+	// 在這個測試套件中的每個測試案例執行前，都會先執行登入操作
+	test.beforeEach(async ({ page, loginPage, standardUserData }) => {
+		await page.goto('');
+		await loginPage.login(standardUserData.username, standardUserData.password);
+	});
+
 	test('完整流程從購物到結帳', async ({
-		loginPage,
-		standardUserData,
 		productPage,
 		cartPage,
 		checkoutPage,
 		productsToAdd,
 		checkoutPersonData,
 	}) => {
-		// 流程1: 登入
-		await loginPage.login(standardUserData.username, standardUserData.password);
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 		// 流程3: 進入購物車頁面
@@ -39,9 +41,6 @@ test.describe('Shopping Scenarios', () => {
 		cartPage,
 		productsToAdd,
 	}) => {
-		// 流程1: 登入
-		await loginPage.login(standardUserData.username, standardUserData.password);
-
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
@@ -49,7 +48,7 @@ test.describe('Shopping Scenarios', () => {
 		await hamburgerMenu.logout();
 
 		// 流程4: 再次登入
-		await loginPage.login(standardUserData.username, standardUserData.password);
+		await loginPage.login(standardUserData.username, standardUserData.password); // 這裡的登入是測試流程的一部分，因此予以保留
 
 		// 流程5: 進入購物車頁面確認商品
 		await productPage.goToCartPage();
@@ -60,16 +59,7 @@ test.describe('Shopping Scenarios', () => {
 		// 驗證點2: 確認購物車頁面商品數量正確
 		await cartPage.verifyCartItemCount(productsToAdd.length);
 	});
-	test('重設應用程式狀態後購物車清空', async ({
-		loginPage,
-		standardUserData,
-		productPage,
-		hamburgerMenu,
-		productsToAdd,
-	}) => {
-		// 流程1: 登入
-		await loginPage.login(standardUserData.username, standardUserData.password);
-
+	test('重設應用程式狀態後購物車清空', async ({ productPage, hamburgerMenu, productsToAdd }) => {
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
@@ -79,5 +69,42 @@ test.describe('Shopping Scenarios', () => {
 		// --- 驗證點 (Assertion) ---
 		// 驗證點1: 確認購物車頁面無商品
 		await productPage.verifyCartIconNotVisible();
+	});
+	test('結帳資訊未輸入要提示錯誤訊息', async ({
+		productPage,
+		cartPage,
+		checkoutPage,
+		checkoutPersonData,
+		productToView,
+	}) => {
+		// 前置步驟: 將一個商品加入購物車
+		await productPage.addProductToCart(productToView);
+		await productPage.goToCartPage();
+		await cartPage.goToCheckoutPage();
+		await checkoutPage.continueCheckout();
+		await checkoutPage.verifyErrorMessageShows();
+		checkoutPage.fillCheckoutInformation(
+			checkoutPersonData.firstName,
+			'',
+			checkoutPersonData.postalCode,
+		);
+		await checkoutPage.continueCheckout();
+		await checkoutPage.verifyErrorMessageShows();
+
+		checkoutPage.fillCheckoutInformation(
+			checkoutPersonData.firstName,
+			checkoutPersonData.lastName,
+			'',
+		);
+		await checkoutPage.continueCheckout();
+		await checkoutPage.verifyErrorMessageShows();
+
+		checkoutPage.fillCheckoutInformation(
+			'',
+			checkoutPersonData.lastName,
+			checkoutPersonData.postalCode,
+		);
+		await checkoutPage.continueCheckout();
+		await checkoutPage.verifyErrorMessageShows();
 	});
 });

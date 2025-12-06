@@ -11,6 +11,7 @@ export class CheckoutPage {
 	readonly completeText: Locator;
 	readonly cancelButton: Locator;
 	readonly checkoutTitle: Locator;
+	readonly errorMessage: Locator;
 	constructor(page: Page) {
 		this.page = page;
 		this.firstNameInput = page.locator('[data-test="firstName"]');
@@ -22,6 +23,7 @@ export class CheckoutPage {
 		this.completeText = page.locator('[data-test="complete-text"]');
 		this.cancelButton = page.locator('[data-test="cancel"]');
 		this.checkoutTitle = page.locator('[data-test="title"]');
+		this.errorMessage = page.locator('[data-test="error"]');
 	}
 
 	async fillCheckoutInformation(firstName: string, lastName: string, postalCode: string) {
@@ -48,6 +50,10 @@ export class CheckoutPage {
 	}
 	async verifyOnCheckoutStepTwoPage() {
 		await expect.soft(this.checkoutTitle).toHaveText('Checkout: Overview');
+	}
+
+	async verifyErrorMessageShows() {
+		await expect.soft(this.errorMessage).toBeVisible();
 	}
 
 	async cancelCheckout() {
