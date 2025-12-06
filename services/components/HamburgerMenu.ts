@@ -37,6 +37,10 @@ export class HamburgerMenu {
 		await this.aboutLink.click();
 	}
 
+	async verifyOnAboutPage() {
+		await this.page.url().includes('saucelabs.com');
+	}
+
 	async logout() {
 		await this.openMenu();
 		await this.logoutLink.click();

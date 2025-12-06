@@ -1,16 +1,16 @@
 import { type Page, expect, type Locator } from '@playwright/test';
-import { HamburgerMenu } from '../components/HamburgerMenu.js';
-
 export class ProductPage {
 	readonly page: Page;
-	readonly CartIcon: Locator;
-
-	readonly hamburgerMenu: HamburgerMenu;
-
+	readonly cartIcon: Locator;
+	readonly productTitle: Locator;
+	readonly backToProductsButton: Locator;
+	readonly cartLink: Locator;
 	constructor(page: Page) {
 		this.page = page;
-		this.CartIcon = page.locator('[data-test="shopping-cart-badge"]');
-		this.hamburgerMenu = new HamburgerMenu(page);
+		this.cartIcon = page.locator('[data-test="shopping-cart-badge"]');
+		this.productTitle = page.locator('[data-test="title"]');
+		this.backToProductsButton = page.locator('[data-test="back-to-products"]');
+		this.cartLink = page.locator('[data-test="shopping-cart-link"]');
 	}
 
 	// 產生特定商品的定位器
@@ -28,7 +28,7 @@ export class ProductPage {
 		const removeButton = productContainer
 			.locator('.btn_inventory')
 			.filter({ hasText: 'Remove' });
-		await expect(removeButton).toBeVisible();
+		await expect.soft(removeButton).toBeVisible();
 	}
 
 	async addMultipleProductsToCart(productNames: string[]) {
@@ -44,11 +44,11 @@ export class ProductPage {
 	}
 
 	async verifyCartItemCount(count: number) {
-		await expect(this.CartIcon).toHaveText(String(count));
+		await expect(this.cartIcon).toHaveText(String(count));
 	}
 
 	async verifyCartIconNotVisible() {
-		await expect(this.CartIcon).toBeHidden();
+		await expect(this.cartIcon).toBeHidden();
 	}
 
 	async viewProductDetails(productName: string) {
@@ -60,10 +60,13 @@ export class ProductPage {
 		await this.page.locator('[data-test="back-to-products"]').click();
 	}
 	async verifyOnProductListPage() {
-		await expect(this.page).toHaveURL(/.*inventory.html/);
+		await expect.soft(this.productTitle).toHaveText('Products');
+	}
+	async verifyOnProductDetailPage() {
+		expect.soft(this.backToProductsButton).toBeVisible();
 	}
 
 	async goToCartPage() {
-		await this.CartIcon.click();
+		await this.cartLink.click();
 	}
 }

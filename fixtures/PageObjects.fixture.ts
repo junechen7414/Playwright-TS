@@ -2,6 +2,7 @@ import { LoginPage } from '../services/pages/LoginPage.js';
 import { ProductPage } from '../services/pages/ProductPage.js';
 import { CartPage } from '../services/pages/CartPage.js';
 import { CheckoutPage } from '../services/pages/CheckoutPage.js';
+import { HamburgerMenu } from '../services/components/HamburgerMenu.js';
 import { test as baseTest } from '@playwright/test';
 
 type PageObject = {
@@ -9,6 +10,7 @@ type PageObject = {
 	productPage: ProductPage;
 	cartPage: CartPage;
 	checkoutPage: CheckoutPage;
+	hamburgerMenu: HamburgerMenu;
 };
 
 export const pageObjectTest = baseTest.extend<PageObject>({
@@ -25,5 +27,8 @@ export const pageObjectTest = baseTest.extend<PageObject>({
 	},
 	checkoutPage: async ({ page }, use) => {
 		await use(new CheckoutPage(page));
+	},
+	hamburgerMenu: async ({ page }, use) => {
+		await use(new HamburgerMenu(page));
 	},
 });
