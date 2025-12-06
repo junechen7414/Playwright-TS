@@ -37,6 +37,7 @@ test.describe('Shopping Scenarios', () => {
 		loginPage,
 		standardUserData,
 		productPage,
+		hamburgerMenu,
 		cartPage,
 		productsToAdd,
 	}) => {
@@ -44,7 +45,7 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
 		// 流程3: 登出
-		await productPage.hamburgerMenu.logout();
+		await hamburgerMenu.logout();
 
 		// 流程4: 再次登入
 		await loginPage.login(standardUserData.username, standardUserData.password); // 這裡的登入是測試流程的一部分，因此予以保留
