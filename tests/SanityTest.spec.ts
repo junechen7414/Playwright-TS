@@ -90,10 +90,11 @@ test.describe('漢堡選單導航', () => {
 		hamburgerMenu,
 		productPage,
 		cartPage,
+		productToView,
 		checkoutPage,
 		checkoutPersonData,
 	}) => {
-		await productPage.addProductToCart(checkoutPersonData.firstName);
+		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
 		await checkoutPage.fillCheckoutInformation(
@@ -108,12 +109,13 @@ test.describe('漢堡選單導航', () => {
 	test('從結帳資訊頁登出', async ({
 		hamburgerMenu,
 		productPage,
+		productToView,
 		cartPage,
 		checkoutPage,
 		loginPage,
 		checkoutPersonData,
 	}) => {
-		await productPage.addProductToCart(checkoutPersonData.firstName);
+		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
 		await checkoutPage.fillCheckoutInformation(
@@ -128,11 +130,12 @@ test.describe('漢堡選單導航', () => {
 	test('從結帳完成頁導航到 About 頁面', async ({
 		hamburgerMenu,
 		productPage,
+		productToView,
 		cartPage,
 		checkoutPage,
 		checkoutPersonData,
 	}) => {
-		await productPage.addProductToCart(checkoutPersonData.firstName);
+		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
 		await checkoutPage.fillCheckoutInformation(
@@ -149,12 +152,13 @@ test.describe('漢堡選單導航', () => {
 	test('從結帳完成頁登出', async ({
 		hamburgerMenu,
 		productPage,
+		productToView,
 		cartPage,
 		checkoutPage,
 		loginPage,
 		checkoutPersonData,
 	}) => {
-		await productPage.addProductToCart(checkoutPersonData.firstName);
+		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
 		await checkoutPage.fillCheckoutInformation(
