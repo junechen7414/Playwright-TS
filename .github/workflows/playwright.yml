@@ -1,6 +1,5 @@
 name: Playwright Tests
 # This workflow runs Playwright tests on push and pull request events to the Saucedemo, main, and master branches.
-# It uses the official Playwright Docker image to ensure a consistent testing environment.
 on:
     # push:
     #     branches: [Saucedemo, main, master]
@@ -14,19 +13,14 @@ jobs:
     test:
         timeout-minutes: 60
         runs-on: ubuntu-latest
-        container:
-            image: mcr.microsoft.com/playwright:v1.57.0-noble # official Playwright image
-            options: --user 0 # to run as root
         steps:
             - uses: actions/checkout@v5
-            - name: Install unzip
-              run: apt-get update && apt-get install -y unzip
             - uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
             - name: Install dependencies
-              run: bun install # use bun install
-            # - name: Install Playwright browsers
-            #   run: npx playwright install msedge # somehow official image does not have msedge installed
+              run: bun install
+            - name: Install Playwright Browsers
+              run: bunx playwright install --with-deps
             - name: Run Playwright tests
-              run: bun x playwright test
+              run: bunx playwright test
