@@ -6,8 +6,8 @@
 	"type": "module",
 	"scripts": {
 		"format": "prettier --write .",
-		"eslint-check-only": "npx eslint .",
-		"eslint-fix": "npx eslint . --fix",
+		"eslint-check-only": "bun x eslint .",
+		"eslint-fix": "bun x eslint . --fix",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
