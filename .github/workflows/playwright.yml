@@ -15,7 +15,7 @@ jobs:
         timeout-minutes: 60
         runs-on: ubuntu-latest
         container:
-            image: mcr.microsoft.com/playwright:v1.56.1-noble # official Playwright image
+            image: mcr.microsoft.com/playwright:v1.57.0-noble # official Playwright image
             options: --user 0 # to run as root
         steps:
             - uses: actions/checkout@v5
