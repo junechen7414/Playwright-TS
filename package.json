@@ -6,9 +6,10 @@
 	"type": "module",
 	"scripts": {
 		"format": "prettier --write .",
-		"eslint-check-only": "bun x eslint .",
-		"eslint-fix": "bun x eslint . --fix",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"eslint-check-only": "eslint .",
+		"eslint-fix": "eslint . --fix",
+		"test": "playwright test",
+		"echo test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
 	"author": "",
