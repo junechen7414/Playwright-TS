@@ -15,6 +15,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v5
+            - name: Cache Playwright browsers
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  # BUN_LOCK_HASH 用來在 bun.lockb 變動時更新快取
+                  # RUNNER_OS 確保快取只在相同的作業系統上重複使用
+                  key: ${{ runner.os }}-playwright-bun-${{ hashFiles('**/bun.lockb') }}
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-bun-
+
             - uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
