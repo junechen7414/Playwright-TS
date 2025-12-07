@@ -20,8 +20,6 @@ jobs:
             options: --user 0 # to run as root
         steps:
             - uses: actions/checkout@v5
-            - name: Install unzip
-              run: apt-get update && apt-get install -y unzip
             # 使用官方 action 來安裝 bun，更穩定且能利用快取
             - name: Install Bun
               uses: oven-sh/setup-bun@v2
