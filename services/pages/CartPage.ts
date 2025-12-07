@@ -18,10 +18,6 @@ export class CartPage {
 		this.checkoutButton.click();
 	}
 
-	async goToCheckoutPage() {
-		this.checkoutButton.click();
-	}
-
 	async continueShopping() {
 		await this.continueShoppingButton.click();
 	}
