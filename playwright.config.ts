@@ -11,6 +11,21 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+// 建立一個代表本地時區的日期時間字串
+function getLocalDate() {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = (now.getMonth() + 1).toString().padStart(2, '0');
+	const day = now.getDate().toString().padStart(2, '0');
+	const hours = now.getHours().toString().padStart(2, '0');
+	const minutes = now.getMinutes().toString().padStart(2, '0');
+	const seconds = now.getSeconds().toString().padStart(2, '0');
+	return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+}
+// 透過環境變數確保時間戳記在整個測試流程中只被建立一次
+process.env.PW_DATE = process.env.PW_DATE || getLocalDate();
+const date = process.env.PW_DATE;
+
 export default defineConfig({
 	testDir: './tests',
 	timeout: 30 * 1000,
@@ -27,17 +42,18 @@ export default defineConfig({
 	/* Opt out of parallel tests on CI. */
 	workers: process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
-	reporter: 'html',
+	// 將所有測試產出物 (影片、截圖、追蹤檔) 儲存到帶有時間戳記的資料夾中
+	outputDir: `test-results/${date}`,
+	reporter: [
+		// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
+		['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
+	],
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('')`. */
 		baseURL: 'https://www.saucedemo.com/',
-
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: 'on-first-retry',
-
-		screenshot: 'only-on-failure',
-		video: 'retain-on-failure',
+		trace: 'off',
 	},
 
 	/* Configure projects for major browsers */
