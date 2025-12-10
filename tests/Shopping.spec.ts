@@ -83,7 +83,7 @@ test.describe('Shopping Scenarios', () => {
 		await cartPage.goToCheckoutPage();
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
-		checkoutPage.fillCheckoutInformation(
+		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			'',
 			checkoutPersonData.postalCode,
@@ -91,7 +91,7 @@ test.describe('Shopping Scenarios', () => {
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
 
-		checkoutPage.fillCheckoutInformation(
+		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,
 			'',
@@ -99,7 +99,7 @@ test.describe('Shopping Scenarios', () => {
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
 
-		checkoutPage.fillCheckoutInformation(
+		await checkoutPage.fillCheckoutInformation(
 			'',
 			checkoutPersonData.lastName,
 			checkoutPersonData.postalCode,
