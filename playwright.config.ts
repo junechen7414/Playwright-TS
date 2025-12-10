@@ -60,7 +60,14 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
+			use: {
+				...devices['Desktop Chrome'],
+				screenshot: 'only-on-failure',
+				video: {
+					mode: 'on', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+				},
+			},
 		},
 
 		// {
