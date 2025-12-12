@@ -1,9 +1,9 @@
-import { LoginPage } from '../services/pages/LoginPage.js';
-import { ProductPage } from '../services/pages/ProductPage.js';
+import { test as baseTest } from '@playwright/test';
+import { HamburgerMenu } from '../services/components/HamburgerMenu.js';
 import { CartPage } from '../services/pages/CartPage.js';
 import { CheckoutPage } from '../services/pages/CheckoutPage.js';
-import { HamburgerMenu } from '../services/components/HamburgerMenu.js';
-import { test as baseTest } from '@playwright/test';
+import { LoginPage } from '../services/pages/LoginPage.js';
+import { ProductPage } from '../services/pages/ProductPage.js';
 
 type PageObject = {
 	loginPage: LoginPage;

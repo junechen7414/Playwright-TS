@@ -1,4 +1,4 @@
-import { type Page, expect, type Locator } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 export class ProductPage {
 	readonly page: Page;
 	readonly cartIcon: Locator;
@@ -25,9 +25,7 @@ export class ProductPage {
 
 	async verifyItemButtonStatusIsRemove(productName: string) {
 		const productContainer = this.getProductContainer(productName);
-		const removeButton = productContainer
-			.locator('.btn_inventory')
-			.filter({ hasText: 'Remove' });
+		const removeButton = productContainer.locator('.btn_inventory').filter({ hasText: 'Remove' });
 		await expect.soft(removeButton).toBeVisible();
 	}
 
