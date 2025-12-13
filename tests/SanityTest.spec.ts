@@ -71,11 +71,21 @@ test.describe
 			await hamburgerMenu.goToAboutPage();
 			await hamburgerMenu.verifyOnAboutPage();
 		});
+		test('從商品頁登出', async ({ hamburgerMenu, loginPage }) => {
+			await hamburgerMenu.logout();
+			await loginPage.verifyOnLoginPage();
+		});
 		test('從購物車頁導航到 About 頁面', async ({ hamburgerMenu, productPage, cartPage }) => {
 			await productPage.goToCartPage();
 			await cartPage.verifyOnCartPage();
 			await hamburgerMenu.goToAboutPage();
 			await hamburgerMenu.verifyOnAboutPage();
+		});
+		test('從購物車頁登出', async ({ hamburgerMenu, productPage, cartPage, loginPage }) => {
+			await productPage.goToCartPage();
+			await cartPage.verifyOnCartPage();
+			await hamburgerMenu.logout();
+			await loginPage.verifyOnLoginPage();
 		});
 		test('從結帳資訊頁導航到 About 頁面', async ({
 			hamburgerMenu,
@@ -96,47 +106,6 @@ test.describe
 			await checkoutPage.continueCheckout();
 			await hamburgerMenu.goToAboutPage();
 			await hamburgerMenu.verifyOnAboutPage();
-	});
-	test('從結帳完成頁導航到 About 頁面', async ({
-		hamburgerMenu,
-		productPage,
-		productToView,
-		cartPage,
-		checkoutPage,
-		checkoutPersonData,
-	}) => {
-		await productPage.addProductToCart(productToView);
-		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
-		await checkoutPage.fillCheckoutInformation(
-			checkoutPersonData.firstName,
-			checkoutPersonData.lastName,
-			checkoutPersonData.postalCode,
-		);
-		await checkoutPage.continueCheckout();
-		await checkoutPage.finishCheckout();
-		await checkoutPage.verifyOrderCompletion();
-		await hamburgerMenu.goToAboutPage();
-		await hamburgerMenu.verifyOnAboutPage();
-	});
-});
-
-test.describe
-	.skip('漢堡選單從各頁面登出', () => {
-		test.beforeEach(async ({ loginPage, standardUserData, productPage, page }) => {
-			await page.goto('');
-			await loginPage.login(standardUserData.username, standardUserData.password);
-			await productPage.verifyOnProductListPage();
-		});
-		test('從商品頁登出', async ({ hamburgerMenu, loginPage }) => {
-			await hamburgerMenu.logout();
-			await loginPage.verifyOnLoginPage();
-		});
-		test('從購物車頁登出', async ({ hamburgerMenu, productPage, cartPage, loginPage }) => {
-			await productPage.goToCartPage();
-			await cartPage.verifyOnCartPage();
-			await hamburgerMenu.logout();
-			await loginPage.verifyOnLoginPage();
 		});
 		test('從結帳資訊頁登出', async ({
 			hamburgerMenu,
@@ -158,6 +127,28 @@ test.describe
 			await checkoutPage.continueCheckout();
 			await hamburgerMenu.logout();
 			await loginPage.verifyOnLoginPage();
+		});
+		test('從結帳完成頁導航到 About 頁面', async ({
+			hamburgerMenu,
+			productPage,
+			productToView,
+			cartPage,
+			checkoutPage,
+			checkoutPersonData,
+		}) => {
+			await productPage.addProductToCart(productToView);
+			await productPage.goToCartPage();
+			await cartPage.goToCheckoutPage();
+			await checkoutPage.fillCheckoutInformation(
+				checkoutPersonData.firstName,
+				checkoutPersonData.lastName,
+				checkoutPersonData.postalCode,
+			);
+			await checkoutPage.continueCheckout();
+			await checkoutPage.finishCheckout();
+			await checkoutPage.verifyOrderCompletion();
+			await hamburgerMenu.goToAboutPage();
+			await hamburgerMenu.verifyOnAboutPage();
 		});
 		test('從結帳完成頁登出', async ({
 			hamburgerMenu,
