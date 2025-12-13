@@ -20,9 +20,7 @@ export const pageObjectTest = baseTest.extend<PageObject>({
 		await use(loginPage);
 	},
 	productPage: async ({ page }, use) => {
-		const productPage = new ProductPage(page);
-		await productPage.gotoProductPage();
-		await use(productPage);
+		await use(new ProductPage(page));
 	},
 	cartPage: async ({ page }, use) => {
 		await use(new CartPage(page));
