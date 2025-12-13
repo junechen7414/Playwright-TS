@@ -1,6 +1,12 @@
 import { test } from '../fixtures/chainFixtures.js';
 
 test.describe('Shopping Scenarios', () => {
+	// 在這個測試套件中的每個測試案例執行前，都會先執行登入操作
+	test.beforeEach(async ({ page, loginPage, standardUserData }) => {
+		await page.goto('');
+		await loginPage.login(standardUserData.username, standardUserData.password);
+	});
+
 	test('完整流程從購物到結帳', async ({
 		productPage,
 		cartPage,
