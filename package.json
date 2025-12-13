@@ -1,7 +1,7 @@
 {
-	"name": "playwright-eslint-prettier-typescript-saucedemo-project",
+	"name": "playwright-typescript-saucedemo-project",
 	"version": "1.0.0",
-	"description": "Use Playwright with ESLint, Prettier, and TypeScript to test the Saucedemo website.",
+	"description": "Use Playwright TypeScript to test the Saucedemo website.",
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
@@ -16,9 +16,6 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
 		"@playwright/test": "^1.57.0",
-		"@types/node": "^24.7.2",
-		"globals": "^16.5.0",
-		"jiti": "^2.6.1",
-		"typescript": "^5.9.3"
+		"@types/node": "^24.7.2"
 	}
 }

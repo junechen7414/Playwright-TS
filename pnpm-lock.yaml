@@ -17,15 +17,6 @@ importers:
       '@types/node':
         specifier: ^24.7.2
         version: 24.10.1
-      globals:
-        specifier: ^16.5.0
-        version: 16.5.0
-      jiti:
-        specifier: ^2.6.1
-        version: 2.6.1
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
 packages:
 
@@ -95,14 +86,6 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  globals@16.5.0:
-    resolution: {integrity: sha512-c/c15i26VrJ4IRt5Z89DnIzCGDn9EcebibhAOjw5ibqEHsE1wLUgkPn9RDmNcUKyU87GeaL633nyJ+pplFR2ZQ==}
-    engines: {node: '>=18'}
-
-  jiti@2.6.1:
-    resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
-    hasBin: true
-
   playwright-core@1.57.0:
     resolution: {integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==}
     engines: {node: '>=18'}
@@ -111,11 +94,6 @@ packages:
   playwright@1.57.0:
     resolution: {integrity: sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==}
     engines: {node: '>=18'}
-    hasBin: true
-
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
     hasBin: true
 
   undici-types@7.16.0:
@@ -169,10 +147,6 @@ snapshots:
   fsevents@2.3.2:
     optional: true
 
-  globals@16.5.0: {}
-
-  jiti@2.6.1: {}
-
   playwright-core@1.57.0: {}
 
   playwright@1.57.0:
@@ -180,7 +154,5 @@ snapshots:
       playwright-core: 1.57.0
     optionalDependencies:
       fsevents: 2.3.2
-
-  typescript@5.9.3: {}
 
   undici-types@7.16.0: {}
