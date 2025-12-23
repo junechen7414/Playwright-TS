@@ -11,12 +11,12 @@ export class HamburgerMenu {
 
 	constructor(page: Page) {
 		this.page = page;
-		this.menuButton = page.locator('#react-burger-menu-btn');
-		this.inventoryLink = page.locator('[data-test="inventory-sidebar-link"]');
-		this.aboutLink = page.locator('[data-test="about-sidebar-link"]');
-		this.logoutLink = page.locator('[data-test="logout-sidebar-link"]');
-		this.resetAppStateLink = page.locator('[data-test="reset-sidebar-link"]');
-		this.closeMenuButton = page.locator('#react-burger-cross-btn');
+		this.menuButton = page.getByRole('button', { name: 'Open menu' });
+		this.inventoryLink = page.getByRole('link', { name: 'All Items' });
+		this.aboutLink = page.getByRole('link', { name: 'About' });
+		this.logoutLink = page.getByRole('link', { name: 'Logout' });
+		this.resetAppStateLink = page.getByRole('link', { name: 'Reset App State' });
+		this.closeMenuButton = page.getByRole('button', { name: 'Close menu' });
 	}
 
 	async openMenu() {
