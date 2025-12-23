@@ -7,10 +7,10 @@ export class ProductPage {
 	readonly cartLink: Locator;
 	constructor(page: Page) {
 		this.page = page;
-		this.cartIcon = page.locator('[data-test="shopping-cart-badge"]');
-		this.productTitle = page.locator('[data-test="title"]');
-		this.backToProductsButton = page.locator('[data-test="back-to-products"]');
-		this.cartLink = page.locator('[data-test="shopping-cart-link"]');
+		this.cartIcon = page.locator('[data-test="shopping-cart-badge"]'); // nothing better available, can't use user-first locator
+		this.productTitle = page.getByText('Products');
+		this.backToProductsButton = page.getByRole('button', { name: 'Back to products' });
+		this.cartLink = page.locator('.shopping_cart_link');
 	}
 
 	// 產生特定商品的定位器
@@ -20,12 +20,12 @@ export class ProductPage {
 
 	async addProductToCart(productName: string) {
 		const productContainer = this.getProductContainer(productName);
-		await productContainer.locator('.btn_inventory').filter({ hasText: 'Add to cart' }).click();
+		await productContainer.getByRole('button', { name: 'Add to cart' }).click();
 	}
 
 	async verifyItemButtonStatusIsRemove(productName: string) {
 		const productContainer = this.getProductContainer(productName);
-		const removeButton = productContainer.locator('.btn_inventory').filter({ hasText: 'Remove' });
+		const removeButton = productContainer.getByRole('button', { name: 'Remove' });
 		await expect.soft(removeButton).toBeVisible();
 	}
 
@@ -50,12 +50,11 @@ export class ProductPage {
 	}
 
 	async viewProductDetails(productName: string) {
-		const productContainer = this.getProductContainer(productName);
-		await productContainer.locator('[data-test="inventory-item-name"]').click();
+		await this.page.getByText(productName).click();
 	}
 
 	async returnToProductList() {
-		await this.page.locator('[data-test="back-to-products"]').click();
+		await this.backToProductsButton.click();
 	}
 	async verifyOnProductListPage() {
 		await expect.soft(this.productTitle).toHaveText('Products');

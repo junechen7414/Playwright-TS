@@ -8,8 +8,8 @@ export class CartPage {
 	readonly cartTitle: Locator;
 	constructor(page: Page) {
 		this.page = page;
-		this.checkoutButton = page.locator('[data-test="checkout"]');
-		this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
+		this.checkoutButton = page.getByRole('button', { name: 'Checkout' });
+		this.continueShoppingButton = page.getByRole('button', { name: 'Continue shopping' });
 		this.cartItems = page.locator('.inventory_item_name');
 		this.cartTitle = page.locator('[data-test="title"]');
 	}

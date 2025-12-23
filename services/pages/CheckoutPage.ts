@@ -14,16 +14,16 @@ export class CheckoutPage {
 	readonly errorMessage: Locator;
 	constructor(page: Page) {
 		this.page = page;
-		this.firstNameInput = page.locator('[data-test="firstName"]');
-		this.lastNameInput = page.locator('[data-test="lastName"]');
-		this.postalCodeInput = page.locator('[data-test="postalCode"]');
-		this.continueButton = page.locator('[data-test="continue"]');
-		this.finishButton = page.locator('[data-test="finish"]');
-		this.completeHeader = page.locator('[data-test="complete-header"]');
+		this.firstNameInput = page.getByRole('textbox', { name: 'First Name' });
+		this.lastNameInput = page.getByRole('textbox', { name: 'Last Name' });
+		this.postalCodeInput = page.getByRole('textbox', { name: 'Postal Code' });
+		this.continueButton = page.getByRole('button', { name: 'Continue' });
+		this.finishButton = page.getByRole('button', { name: 'Finish' });
+		this.completeHeader = page.getByRole('heading', { name: 'Thank you for your order' });
 		this.completeText = page.locator('[data-test="complete-text"]');
-		this.cancelButton = page.locator('[data-test="cancel"]');
+		this.cancelButton = page.getByRole('button', { name: 'Cancel' });
 		this.checkoutTitle = page.locator('[data-test="title"]');
-		this.errorMessage = page.locator('[data-test="error"]');
+		this.errorMessage = page.getByText('Error');
 	}
 
 	async fillCheckoutInformation(firstName: string, lastName: string, postalCode: string) {
