@@ -58,6 +58,20 @@ export default defineConfig({
 	/* Configure projects for major browsers */
 	projects: [
 		{
+			name: 'api-platzi-fakestore',
+			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
+			use: {
+				baseURL: 'https://api.escuelajs.co', // API 專用的 Base URL
+				screenshot: 'only-on-failure',
+				video: {
+					mode: 'on', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+				},
+			},
+		},
+		{
+			name: 'ui-saucedemo-chromium',
+			testIgnore: '**/api/*.spec.ts', // UI 測試忽略 API 檔案
 			name: 'setup',
 			testMatch: /.*\.setup\.ts/,
 		},
