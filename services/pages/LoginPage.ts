@@ -8,10 +8,10 @@ export class LoginPage {
 	readonly errorMessage: Locator;
 	constructor(page: Page) {
 		this.page = page;
-		this.usernameInput = page.locator('[data-test="username"]');
-		this.passwordInput = page.locator('[data-test="password"]');
-		this.loginButton = page.locator('[data-test="login-button"]');
-		this.errorMessage = page.locator('[data-test="error"]');
+		this.usernameInput = page.getByRole('textbox', { name: 'Username' });
+		this.passwordInput = page.getByRole('textbox', { name: 'Password' });
+		this.loginButton = page.getByRole('button', { name: 'Login' });
+		this.errorMessage = page.getByText('Epic sadface:');
 	}
 	async goto() {
 		await this.page.goto('');

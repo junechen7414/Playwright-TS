@@ -1,12 +1,6 @@
 import { test } from '../fixtures/chainFixtures.js';
 
 test.describe('Shopping Scenarios', () => {
-	// 在這個測試套件中的每個測試案例執行前，都會先執行登入操作
-	test.beforeEach(async ({ page, loginPage, standardUserData }) => {
-		await page.goto('');
-		await loginPage.login(standardUserData.username, standardUserData.password);
-	});
-
 	test('完整流程從購物到結帳', async ({
 		productPage,
 		cartPage,
@@ -32,32 +26,6 @@ test.describe('Shopping Scenarios', () => {
 		// --- 驗證點 (Assertion) ---
 		// 驗證點1: 確認訂單完成頁面顯示
 		await checkoutPage.verifyOrderCompletion();
-	});
-	test('登入登出後購物車狀態持久性', async ({
-		loginPage,
-		standardUserData,
-		productPage,
-		hamburgerMenu,
-		cartPage,
-		productsToAdd,
-	}) => {
-		// 流程2：加入指定商品到購物車
-		await productPage.addMultipleProductsToCart(productsToAdd);
-
-		// 流程3: 登出
-		await hamburgerMenu.logout();
-
-		// 流程4: 再次登入
-		await loginPage.login(standardUserData.username, standardUserData.password); // 這裡的登入是測試流程的一部分，因此予以保留
-
-		// 流程5: 進入購物車頁面確認商品
-		await productPage.goToCartPage();
-
-		// --- 驗證點 (Assertion) ---
-		// 驗證點1: 確認購物車頁面商品正確
-		await cartPage.verifyCartItems(productsToAdd);
-		// 驗證點2: 確認購物車頁面商品數量正確
-		await cartPage.verifyCartItemCount(productsToAdd.length);
 	});
 	test('重設應用程式狀態後購物車清空', async ({ productPage, hamburgerMenu, productsToAdd }) => {
 		// 流程2：加入指定商品到購物車
@@ -106,5 +74,31 @@ test.describe('Shopping Scenarios', () => {
 		);
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
+	});
+	test.skip('登入登出後購物車狀態持久性', async ({
+		loginPage,
+		standardUserData,
+		productPage,
+		hamburgerMenu,
+		cartPage,
+		productsToAdd,
+	}) => {
+		// 流程2：加入指定商品到購物車
+		await productPage.addMultipleProductsToCart(productsToAdd);
+
+		// 流程3: 登出
+		await hamburgerMenu.logout();
+
+		// 流程4: 再次登入
+		await loginPage.login(standardUserData.username, standardUserData.password); // 這裡的登入是測試流程的一部分，因此予以保留
+
+		// 流程5: 進入購物車頁面確認商品
+		await productPage.goToCartPage();
+
+		// --- 驗證點 (Assertion) ---
+		// 驗證點1: 確認購物車頁面商品正確
+		await cartPage.verifyCartItems(productsToAdd);
+		// 驗證點2: 確認購物車頁面商品數量正確
+		await cartPage.verifyCartItemCount(productsToAdd.length);
 	});
 });

@@ -72,14 +72,21 @@ export default defineConfig({
 		{
 			name: 'ui-saucedemo-chromium',
 			testIgnore: '**/api/*.spec.ts', // UI 測試忽略 API 檔案
+			name: 'setup',
+			testMatch: /.*\.setup\.ts/,
+		},
+		{
+			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
+				storageState: '.auth/login.json',
 				screenshot: 'only-on-failure',
 				video: {
 					mode: 'on', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
 					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
 				},
 			},
+			dependencies: ['setup'],
 		},
 
 		// {
