@@ -8,6 +8,8 @@
 		"biome:check": "biome check",
 		"biome:fix": "biome check --write",
 		"test": "playwright test",
+		"api-test": "playwright test --project=api-platzi-fakestore",
+		"ui-test": "playwright test --project=ui-saucedemo-chromium",
 		"echo test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
