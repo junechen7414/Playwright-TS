@@ -62,7 +62,9 @@ export class ProductPage {
 	async verifyOnProductDetailPage() {
 		expect.soft(this.backToProductsButton).toBeVisible();
 	}
-
+	async gotoProductPage() {
+		await this.page.goto('/inventory.html');
+	}
 	async goToCartPage() {
 		await this.cartLink.click();
 	}
