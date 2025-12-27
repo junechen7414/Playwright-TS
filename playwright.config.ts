@@ -42,11 +42,12 @@ export default defineConfig({
 	workers: process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	// 將所有測試產出物 (影片、截圖、追蹤檔) 儲存到帶有時間戳記的資料夾中
-	outputDir: `test-results/${date}`,
-	reporter: [
-		// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
-		['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
-	],
+	// outputDir: `test-results/${date}`,
+	// reporter: [
+	// 	// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
+	// 	['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
+	// ],
+	reporter: 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('')`. */
@@ -62,22 +63,26 @@ export default defineConfig({
 			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
 			use: {
 				baseURL: 'https://api.escuelajs.co', // API 專用的 Base URL
-				screenshot: 'only-on-failure',
+				screenshot: 'off',
 				video: {
-					mode: 'on', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+					mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
 					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
 				},
 			},
 		},
 		{
+			name: 'setup',
+			testMatch: '**/saucedemo/*.setup.ts',
+		},
+		{
 			name: 'ui-saucedemo-chromium',
-			testIgnore: '**/api/*.spec.ts', // UI 測試忽略 API 檔案
+			testMatch: '**/saucedemo/*.spec.ts',
 			use: {
 				...devices['Desktop Chrome'],
 				storageState: '.auth/login.json',
-				screenshot: 'only-on-failure',
+				screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
 				video: {
-					mode: 'on', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+					mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
 					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
 				},
 			},
