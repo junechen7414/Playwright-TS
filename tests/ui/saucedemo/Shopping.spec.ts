@@ -1,4 +1,4 @@
-import { test } from '../fixtures/chainFixtures.js';
+import { test } from '../../../fixtures/chainFixtures.js';
 
 test.describe('Shopping Scenarios', () => {
 	test('完整流程從購物到結帳', async ({
@@ -49,6 +49,7 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
+		await checkoutPage.verifyOnCheckoutStepOnePage();
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
 		await checkoutPage.fillCheckoutInformation(
