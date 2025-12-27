@@ -72,11 +72,6 @@ export default defineConfig({
 		{
 			name: 'ui-saucedemo-chromium',
 			testIgnore: '**/api/*.spec.ts', // UI 測試忽略 API 檔案
-			name: 'setup',
-			testMatch: /.*\.setup\.ts/,
-		},
-		{
-			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
 				storageState: '.auth/login.json',
