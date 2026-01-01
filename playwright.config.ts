@@ -24,7 +24,7 @@ function getLocalDate() {
 }
 // 透過環境變數確保時間戳記在整個測試流程中只被建立一次
 process.env.PW_DATE = process.env.PW_DATE || getLocalDate();
-const date = process.env.PW_DATE;
+// const date = process.env.PW_DATE;
 
 export default defineConfig({
 	testDir: './tests',
@@ -51,7 +51,7 @@ export default defineConfig({
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('')`. */
-		baseURL: 'https://www.saucedemo.com/',
+		// baseURL: 'localhost:3000',
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'off',
 	},
@@ -63,21 +63,26 @@ export default defineConfig({
 			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
 			use: {
 				baseURL: 'https://api.escuelajs.co', // API 專用的 Base URL
-				screenshot: 'off',
-				video: {
-					mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-				},
+				// screenshot: 'off',
+				// video: {
+				// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+				// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+				// },
 			},
 		},
 		{
 			name: 'setup',
 			testMatch: '**/saucedemo/*.setup.ts',
+			use: {
+				baseURL: 'https://www.saucedemo.com/',
+				...devices['Desktop Chrome'],
+			},
 		},
 		{
 			name: 'ui-saucedemo-chromium',
 			testMatch: '**/saucedemo/*.spec.ts',
 			use: {
+				baseURL: 'https://www.saucedemo.com/',
 				...devices['Desktop Chrome'],
 				storageState: '.auth/login.json',
 				screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
