@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { GET_USER_DETAIL_QUERY } from './queries/UserQueries.js';
+import { GET_USER_DETAIL_QUERY } from './queries/UserQueries';
 
 export class UserApiClient {
 	private readonly endpoint: string;

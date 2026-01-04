@@ -11,7 +11,7 @@ export class HamburgerMenu {
 
 	constructor(page: Page) {
 		this.page = page;
-		this.menuButton = page.getByRole('button', { name: 'Open menu' });
+		this.menuButton = page.getByRole('button', { name: 'Open Menu' });
 		this.inventoryLink = page.getByRole('link', { name: 'All Items' });
 		this.aboutLink = page.getByRole('link', { name: 'About' });
 		this.logoutLink = page.getByRole('link', { name: 'Logout' });

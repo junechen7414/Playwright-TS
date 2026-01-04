@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { UserApiClient } from '../../services/apis/UserApiClient.js';
+import { UserApiClient } from '../../services/apis/UserApiClient';
 
 test.describe('User API Tests', () => {
 	test('should retrieve user data successfully', async ({ request }) => {

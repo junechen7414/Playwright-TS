@@ -1,4 +1,4 @@
-import { test as setup } from '../../../fixtures/chainFixtures.js';
+import { test as setup } from '../../../fixtures/chainFixtures';
 
 const authFileDir = '.auth/login.json';
 
