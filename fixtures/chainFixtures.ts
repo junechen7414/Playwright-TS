@@ -1,7 +1,7 @@
 import { mergeTests } from '@playwright/test';
-import { pageObjectTest } from './PageObjects.fixture.js';
-import { dataTest } from './TestData.fixture.js';
+import { pageObjectTest } from './PageObjects.fixture';
+import { dataTest } from './TestData.fixture';
 
 export const test = mergeTests(pageObjectTest, dataTest);
 export { expect } from '@playwright/test';
-export { HamburgerMenu } from '../services/components/HamburgerMenu.js';
+export { HamburgerMenu } from '../services/components/HamburgerMenu';
