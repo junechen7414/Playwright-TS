@@ -59,10 +59,10 @@ export default defineConfig({
 	/* Configure projects for major browsers */
 	projects: [
 		{
-			name: 'api-platzi-fakestore',
+			name: 'api',
 			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
 			use: {
-				baseURL: 'https://api.escuelajs.co', // API 專用的 Base URL
+				baseURL: 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
 				// screenshot: 'off',
 				// video: {
 				// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
@@ -71,7 +71,7 @@ export default defineConfig({
 			},
 		},
 		{
-			name: 'setup',
+			name: 'ui-setup',
 			testMatch: '**/saucedemo/*.setup.ts',
 			use: {
 				baseURL: 'https://www.saucedemo.com/',
@@ -91,7 +91,7 @@ export default defineConfig({
 					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
 				},
 			},
-			dependencies: ['setup'],
+			dependencies: ['ui-setup'],
 		},
 
 		// {
