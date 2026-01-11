@@ -71,32 +71,31 @@ type DataFixtures = {
 
 // 擴展基本測試fixture以包含資料fixture
 export const dataTest = baseTest.extend<DataFixtures>({
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	standardUserData: async ({}, use) => {
+	standardUserData: async ({ page: _ }, use) => {
 		await use({ ...credentials.standard });
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	lockedUserData: async ({}, use) => {
+
+	lockedUserData: async ({ page: _ }, use) => {
 		await use({ ...credentials.lockedOut });
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	invalidUserData: async ({}, use) => {
+
+	invalidUserData: async ({ page: _ }, use) => {
 		await use({ ...credentials.invalid });
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	loginErrorData: async ({}, use) => {
+
+	loginErrorData: async ({ page: _ }, use) => {
 		await use({ ...loginErrorData });
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	productsToAdd: async ({}, use) => {
+
+	productsToAdd: async ({ page: _ }, use) => {
 		await use([...productsToAdd]);
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	productToView: async ({}, use) => {
+
+	productToView: async ({ page: _ }, use) => {
 		await use(productToView);
 	},
-	// biome-ignore lint/correctness/noEmptyPattern: Playwright requires destructuring for fixtures.
-	checkoutPersonData: async ({}, use) => {
+
+	checkoutPersonData: async ({ page: _ }, use) => {
 		await use({ ...checkoutPersonData });
 	},
 });
