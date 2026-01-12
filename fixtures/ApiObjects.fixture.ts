@@ -29,17 +29,21 @@ const updateBookingPayload: UpdateBookingPayload = {
 	additionalneeds: 'Breakfast',
 };
 
-type ApiObject = {
-	bookingApiClient: BookingApiClient;
+type BookingApiFixtures = {
+	bookingApi: BookingApiClient;
+	bookingApiWithData: BookingApiClient;
 	newBookingPayload: CreateBookingPayload;
 	updateBookingPayload: UpdateBookingPayload;
 };
 
-export const apiObjectTest = baseTest.extend<ApiObject>({
-	bookingApiClient: async ({ request }, use) => {
-		const bookingApiClient = new BookingApiClient(request);
-		await bookingApiClient.createBooking(newBookingPayload);
-		await use(bookingApiClient);
+export const bookingApiTest = baseTest.extend<BookingApiFixtures>({
+	bookingApi: async ({ request }, use) => {
+		const client = new BookingApiClient(request);
+		await use(client);
+	},
+	bookingApiWithData: async ({ bookingApi }, use) => {
+		await bookingApi.createBooking(newBookingPayload);
+		await use(bookingApi);
 	},
 	newBookingPayload: async ({ request: _ }, use) => {
 		await use({ ...newBookingPayload });
