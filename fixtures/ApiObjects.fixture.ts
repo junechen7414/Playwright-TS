@@ -31,8 +31,7 @@ const updateBookingPayload: UpdateBookingPayload = {
 
 type BookingApiFixtures = {
 	bookingApi: BookingApiClient;
-	bookingApiWithData: BookingApiClient;
-	bookingApiWithDataDeletedAfterward: BookingApiClient;
+	bookingApiWithDataDeletedAfterward: { bookingApi: BookingApiClient; bookingId: number };
 	newBookingPayload: CreateBookingPayload;
 	updateBookingPayload: UpdateBookingPayload;
 };
@@ -42,23 +41,16 @@ export const bookingApiTest = baseTest.extend<BookingApiFixtures>({
 		const client = new BookingApiClient(request);
 		await use(client);
 	},
-	bookingApiWithData: async ({ bookingApi }, use) => {
-		await bookingApi.createBooking(newBookingPayload);
-		await use(bookingApi);
-	},
 	bookingApiWithDataDeletedAfterward: async ({ bookingApi }, use) => {
 		const createResponse = await bookingApi.createBooking(newBookingPayload);
 		const responseJson = await createResponse.json();
 		const bookingId = responseJson.bookingid;
 
-		await use(bookingApi);
+		await use({ bookingApi, bookingId });
 
-		// 測試結束後，刪除已建立的預約資料
-		// 這裡假設 BookingApiClient 中存在 deleteBooking 方法，並且它會處理刪除請求所需的身份驗證
-		if (bookingId) {
-			// 假設 deleteBooking 需要 token 才能驗證，這部分邏輯應封裝在 BookingApiClient 內
-			await bookingApi.deleteBooking(bookingId);
-		}
+		await bookingApi.deleteBooking(bookingId).catch(() => {
+			// 忽略已經被測案刪除的情況
+		});
 	},
 	newBookingPayload: async ({ request: _ }, use) => {
 		await use({ ...newBookingPayload });
@@ -67,3 +59,5 @@ export const bookingApiTest = baseTest.extend<BookingApiFixtures>({
 		await use({ ...updateBookingPayload });
 	},
 });
+
+export { expect } from '@playwright/test';
