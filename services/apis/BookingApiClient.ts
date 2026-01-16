@@ -57,9 +57,6 @@ export class BookingApiClient extends BaseApiClient {
 	/**
 	 * Read產品資料
 	 */
-	async getBookingByFirstName(firstName: string) {
-		return await this.get(`${this.endpoint}?firstname=${firstName}`);
-	}
 	async getBookingById(id: number) {
 		return await this.get(`${this.endpoint}/${id}`);
 	}
