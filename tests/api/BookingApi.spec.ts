@@ -28,7 +28,8 @@ test.describe('Booking API Tests', () => {
 		const response = await bookingApi.updateBooking(bookingId, updateBookingPayload);
 
 		expect(response).toBeOK();
-		expect.soft(await response.json()).toStrictEqual(updateBookingPayload);
+		const updatedBooking = await response.json();
+		expect.soft(updatedBooking).toStrictEqual(updateBookingPayload);
 	});
 	test('delete a booking', async ({
 		bookingApiWithDataDeletedAfterward: { bookingApi, bookingId },
