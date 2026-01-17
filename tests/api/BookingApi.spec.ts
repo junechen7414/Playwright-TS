@@ -3,15 +3,6 @@ import { bookingApiTest as test } from '../../fixtures/ApiObjects.fixture';
 import type { UpdateBookingPayload } from '../../services/apis/BookingApiClient';
 
 test.describe('Booking API Tests', () => {
-	test('create a booking', async ({ bookingApi, newBookingPayload }) => {
-		const response = await bookingApi.createBooking(newBookingPayload);
-		expect(response).toBeOK(); //200~299 status code
-
-		const createdBookingData = await response.json();
-		const createdBookingId = createdBookingData.bookingid;
-		expect(createdBookingId).toBeGreaterThan(0);
-		expect.soft(createdBookingData.booking).toStrictEqual(newBookingPayload);
-	});
 	test('should perform full CRUD lifecycle for a booking', async ({
 		bookingApi,
 		newBookingPayload,
