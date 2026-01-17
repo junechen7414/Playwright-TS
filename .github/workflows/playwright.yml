@@ -1,27 +1,30 @@
 name: Playwright Tests
+# This workflow runs Playwright tests on push and pull request events to the Saucedemo, main, and master branches.
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    # push:
+    #     branches: [Saucedemo, main, master]
+    pull_request:
+        branches: [Saucedemo, main, master]
+    workflow_dispatch:
+permissions:
+    contents: read
+    actions: read
 jobs:
-  test:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+    test:
+        timeout-minutes: 60
+        runs-on: ubuntu-latest
+        # 使用 container 指令來指定 Playwright 的官方 Docker 映像檔
+        # 後續所有 steps 都在這個容器內執行
+        container:
+            image: mcr.microsoft.com/playwright:v1.57.0-noble
+            options: --user 0 # to run as root
+        steps:
+            - uses: actions/checkout@v5
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+            - name: Install dependencies
+              run: pnpm install
+            - name: Run Playwright tests
+              run: pnpm playwright test
