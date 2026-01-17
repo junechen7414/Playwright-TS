@@ -43,9 +43,6 @@ export const bookingApiTest = baseTest.extend<BookingApiFixtures>({
 	},
 	bookingApiWithDataDeletedAfterward: async ({ bookingApi }, use) => {
 		const createResponse = await bookingApi.createBooking(newBookingPayload);
-		if (!createResponse.ok()) {
-			throw new Error('Failed to create booking');
-		}
 		const responseJson = await createResponse.json();
 		const bookingId = responseJson.bookingid;
 
@@ -53,7 +50,6 @@ export const bookingApiTest = baseTest.extend<BookingApiFixtures>({
 
 		await bookingApi.deleteBooking(bookingId).catch(() => {
 			// 忽略已經被測案刪除的情況
-			/*靜默處理*/
 		});
 	},
 	newBookingPayload: async ({ request: _ }, use) => {

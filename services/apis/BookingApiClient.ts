@@ -37,18 +37,13 @@ export interface UpdateBookingResponse {
 
 export class BookingApiClient extends BaseApiClient {
 	private readonly endpoint: string;
-	private token: string;
 
 	constructor(request: APIRequestContext) {
 		super(request);
 		this.endpoint = '/booking';
-		this.token = '';
 	}
 
 	async getToken() {
-		if (this.token) {
-			return this.token;
-		}
 		const response = await this.post('/auth', {
 			data: {
 				username: 'admin',
@@ -56,8 +51,7 @@ export class BookingApiClient extends BaseApiClient {
 			},
 		});
 		const token = (await response.json()).token;
-		this.token = `token=${token}`;
-		return this.token;
+		return `token=${token}`;
 	}
 
 	/**
