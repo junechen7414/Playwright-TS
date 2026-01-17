@@ -4,6 +4,7 @@ import type { APIRequestContext, APIResponse } from '@playwright/test';
  * 定義 API 回傳結果的包裝介面
  */
 export abstract class BaseApiClient {
+	// 設置為 readonly 確保 request 實例不被意外修改
 	constructor(protected readonly request: APIRequestContext) {}
 
 	/**
@@ -19,7 +20,7 @@ export abstract class BaseApiClient {
 	): Promise<APIResponse> {
 		const response = await this.request[method](url, options);
 
-		// 在 Base object 做日誌紀錄
+		// 實務做法：在 Base 層做基本的日誌紀錄，方便測試失敗時追查
 		if (!response.ok()) {
 			console.error(`[API ERROR] ${method.toUpperCase()} ${url} - Status: ${response.status()}`);
 		}
@@ -27,6 +28,7 @@ export abstract class BaseApiClient {
 		return response;
 	}
 
+	// 拆分 Function，確保參數明確，並回傳 Playwright 原生的 APIResponse
 	protected async get(
 		url: string,
 		options?: Parameters<APIRequestContext['get']>[1],
