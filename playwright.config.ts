@@ -93,6 +93,16 @@ export default defineConfig({
 			},
 			dependencies: ['ui-setup'],
 		},
+		{
+			name: 'ui-the-internet',
+			testMatch: '**/theinternet/*.spec.ts',
+			use: {
+				baseURL: 'https://the-internet.herokuapp.com/',
+				...devices['Desktop Chrome'],
+				screenshot: 'off',
+				video: 'off',
+			},
+		},
 
 		// {
 		//   name: 'firefox',
