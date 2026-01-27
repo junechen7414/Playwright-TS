@@ -1,30 +1,55 @@
 name: Playwright Tests
-# This workflow runs Playwright tests on push and pull request events to the Saucedemo, main, and master branches.
+
 on:
-    # push:
-    #     branches: [Saucedemo, main, master]
-    pull_request:
-        branches: [Saucedemo, main, master]
-    workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
 permissions:
-    contents: read
-    actions: read
+  contents: read
+  actions: read
+
 jobs:
-    test:
-        timeout-minutes: 60
-        runs-on: ubuntu-latest
-        # 使用 container 指令來指定 Playwright 的官方 Docker 映像檔
-        # 後續所有 steps 都在這個容器內執行
-        container:
-            image: mcr.microsoft.com/playwright:v1.57.0-noble
-            options: --user 0 # to run as root
-        steps:
-            - uses: actions/checkout@v5
-            - name: Set up pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 10
-            - name: Install dependencies
-              run: pnpm install
-            - name: Run Playwright tests
-              run: pnpm playwright test
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    # 使用 Playwright 官方映像檔，省去 CI 期間安裝瀏覽器與系統依賴的時間
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 取得 pnpm store 路徑，用來快取
+      - name: Get pnpm store directory
+        shell: bash
+        id: pnpm-cache
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      # 僅快取 pnpm store 而非 node_modules，避免解壓縮大量細碎檔案的 I/O 損耗
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        # --frozen-lockfile 確保測試環境的一致性，並預期加快安裝速度
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Playwright tests
+        run: pnpm playwright test
+        env:
+          # 告知 Playwright 直接使用容器內的瀏覽器，跳過版本檢查與下載邏輯
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
