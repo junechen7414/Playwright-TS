@@ -37,17 +37,18 @@ export default defineConfig({
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	// forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
-	retries: process.env.CI ? 2 : 2,
+	retries: process.env.CI ? 2 : 0,
 	/* Opt out of parallel tests on CI. */
 	workers: process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	// 將所有測試產出物 (影片、截圖、追蹤檔) 儲存到帶有時間戳記的資料夾中
-	// outputDir: `test-results/${date}`,
+	outputDir: `test-results/`,
+	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
 	// reporter: [
 	// 	// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
 	// 	['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
 	// ],
-	reporter: 'list',
+	// reporter: 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('')`. */
