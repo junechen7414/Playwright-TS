@@ -53,3 +53,11 @@ jobs:
         env:
           # 告知 Playwright 直接使用容器內的瀏覽器，跳過版本檢查與下載邏輯
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-reports/  # 這裡對應 config 預設的 HTML 輸出路徑
+          retention-days: 30
