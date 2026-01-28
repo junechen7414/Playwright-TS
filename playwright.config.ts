@@ -42,8 +42,10 @@ export default defineConfig({
 	workers: process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	// 將所有測試產出物 (影片、截圖、追蹤檔) 儲存到帶有時間戳記的資料夾中
-	outputDir: `test-results/`,
-	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+	outputDir: `playwright-report/`,
+	reporter: process.env.CI
+		? [['list'], ['html', { outFolder: `playwright-report/`, open: 'never' }]]
+		: 'list',
 	// reporter: [
 	// 	// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
 	// 	['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
