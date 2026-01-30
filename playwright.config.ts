@@ -60,91 +60,132 @@ export default defineConfig({
 	},
 
 	/* Configure projects for major browsers */
-	projects: [
-		{
-			name: 'api',
-			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
-			use: {
-				baseURL: 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
-				// screenshot: 'off',
-				// video: {
-				// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-				// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-				// },
-			},
-		},
-		{
-			name: 'ui-setup',
-			testMatch: '**/saucedemo/*.setup.ts',
-			use: {
-				baseURL: 'https://www.saucedemo.com/',
-				...devices['Desktop Chrome'],
-			},
-		},
-		{
-			name: 'ui-saucedemo-chromium',
-			testMatch: '**/saucedemo/*.spec.ts',
-			use: {
-				baseURL: 'https://www.saucedemo.com/',
-				...devices['Desktop Chrome'],
-				storageState: '.auth/login.json',
-				screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-				video: {
-					mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+	projects: process.env.CI
+		? [
+				{
+					name: 'ui-setup',
+					testMatch: '**/saucedemo/*.setup.ts',
+					use: {
+						baseURL: 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+					},
 				},
-			},
-			dependencies: ['ui-setup'],
-		},
+				{
+					name: 'ui-saucedemo-chromium',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						video: {
+							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						},
+					},
+					dependencies: ['ui-setup'],
+				},
+			]
+		: [
+				{
+					name: 'api',
+					testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
+					use: {
+						baseURL: 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
+						// screenshot: 'off',
+						// video: {
+						// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						// },
+					},
+				},
+				{
+					name: 'ui-setup',
+					testMatch: '**/saucedemo/*.setup.ts',
+					use: {
+						baseURL: 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+					},
+				},
+				{
+					name: 'ui-saucedemo-chromium',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						video: {
+							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						},
+					},
+					dependencies: ['ui-setup'],
+				},
+				{
+					name: 'ui-saucedemo-webkit',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: 'https://www.saucedemo.com/',
+						...devices['Desktop Safari'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						video: {
+							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						},
+					},
+					dependencies: ['ui-setup'],
+				},
 
-		// {
-		//   name: 'firefox',
-		//   use: { ...devices['Desktop Firefox'] },
-		// },
+				// {
+				//   name: 'firefox',
+				//   use: { ...devices['Desktop Firefox'] },
+				// },
 
-		// {
-		//   name: 'webkit',
-		//   use: { ...devices['Desktop Safari'] },
-		// },
+				// {
+				//   name: 'webkit',
+				//   use: { ...devices['Desktop Safari'] },
+				// },
 
-		/* ================================================== */
-		/* ==           自訂的環境設定 (Environments)           == */
-		/* ================================================== */
+				/* ================================================== */
+				/* ==           自訂的環境設定 (Environments)           == */
+				/* ================================================== */
 
-		// {
-		//   name: 'dev',
-		//   use: {
-		//     baseURL: 'http://localhost:4000', // 開發環境的 URL
-		//   },
-		// },
+				// {
+				//   name: 'dev',
+				//   use: {
+				//     baseURL: 'http://localhost:4000', // 開發環境的 URL
+				//   },
+				// },
 
-		// {
-		//   name: 'test',
-		//   use: {
-		//     baseURL: 'https://test.your-awesome-app.com', // 測試環境的 URL
-		//   },
-		// },
+				// {
+				//   name: 'test',
+				//   use: {
+				//     baseURL: 'https://test.your-awesome-app.com', // 測試環境的 URL
+				//   },
+				// },
 
-		/* Test against mobile viewports. */
-		// {
-		//   name: 'Mobile Chrome',
-		//   use: { ...devices['Pixel 5'] },
-		// },
-		// {
-		//   name: 'Mobile Safari',
-		//   use: { ...devices['iPhone 12'] },
-		// },
+				/* Test against mobile viewports. */
+				// {
+				//   name: 'Mobile Chrome',
+				//   use: { ...devices['Pixel 5'] },
+				// },
+				// {
+				//   name: 'Mobile Safari',
+				//   use: { ...devices['iPhone 12'] },
+				// },
 
-		/* Test against branded browsers. */
-		// {
-		// 	name: 'Microsoft Edge',
-		// 	use: { ...devices['Desktop Edge'], channel: 'msedge' },
-		// },
-		// {
-		//   name: 'Google Chrome',
-		//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-		// },
-	],
+				/* Test against branded browsers. */
+				// {
+				// 	name: 'Microsoft Edge',
+				// 	use: { ...devices['Desktop Edge'], channel: 'msedge' },
+				// },
+				// {
+				//   name: 'Google Chrome',
+				//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+				// },
+			],
 
 	/* Run your local dev server before starting the tests */
 	// webServer: {
