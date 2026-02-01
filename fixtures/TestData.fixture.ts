@@ -51,9 +51,9 @@ export type CheckoutPersonData = {
 
 // 定義結帳人資料
 const checkoutPersonDataFromEnv: CheckoutPersonData = {
-	firstName: process.env.CHECKOUT_FIRSTNAME!,
-	lastName: process.env.CHECKOUT_LASTNAME!,
-	postalCode: process.env.CHECKOUT_POSTALCODE!,
+	firstName: process.env.CHECKOUT_FIRSTNAME || 'CI',
+	lastName: process.env.CHECKOUT_LASTNAME || 'Test',
+	postalCode: process.env.CHECKOUT_POSTALCODE || '101',
 };
 
 // ==================================================
