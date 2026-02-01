@@ -1,5 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
 
+/**
+ * 讀取環境變數
+ * 預設使用 'local'，可以透過命令列傳入 ENV=staging 來改變
+ */
+const environment = (process.env.ENV || 'local').toLowerCase().trim();
+
+// 根據環境載入對應的 .env 檔案
+dotenv.config({
+	path: `.env.${environment}`,
+});
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -37,17 +48,20 @@ export default defineConfig({
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	// forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
-	retries: process.env.CI ? 2 : 2,
+	retries: process.env.CI ? 2 : 0,
 	/* Opt out of parallel tests on CI. */
 	workers: process.env.CI ? 2 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	// 將所有測試產出物 (影片、截圖、追蹤檔) 儲存到帶有時間戳記的資料夾中
-	// outputDir: `test-results/${date}`,
+	outputDir: `playwright-report/`,
+	reporter: process.env.CI
+		? [['list'], ['html', { outFolder: `playwright-report/`, open: 'never' }]]
+		: 'list',
 	// reporter: [
 	// 	// HTML 報告也使用相同的時間戳記資料夾，方便歸檔
 	// 	['html', { outputFolder: `playwright-report/${date}`, open: 'never' }],
 	// ],
-	reporter: 'list',
+	// reporter: 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('')`. */
@@ -57,91 +71,135 @@ export default defineConfig({
 	},
 
 	/* Configure projects for major browsers */
-	projects: [
-		{
-			name: 'api',
-			testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
-			use: {
-				baseURL: 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
-				// screenshot: 'off',
-				// video: {
-				// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-				// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-				// },
-			},
-		},
-		{
-			name: 'ui-setup',
-			testMatch: '**/saucedemo/*.setup.ts',
-			use: {
-				baseURL: 'https://www.saucedemo.com/',
-				...devices['Desktop Chrome'],
-			},
-		},
-		{
-			name: 'ui-saucedemo-chromium',
-			testMatch: '**/saucedemo/*.spec.ts',
-			use: {
-				baseURL: 'https://www.saucedemo.com/',
-				...devices['Desktop Chrome'],
-				storageState: '.auth/login.json',
-				screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-				video: {
-					mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-					size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+	projects: process.env.CI
+		? [
+				{
+					name: 'ui-setup',
+					testMatch: '**/saucedemo/*.setup.ts',
+					use: {
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+					},
 				},
-			},
-			dependencies: ['ui-setup'],
-		},
+				{
+					name: 'ui-saucedemo-chromium',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						video: {
+							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						},
+					},
+					dependencies: ['ui-setup'],
+				},
+			]
+		: [
+				{
+					name: 'api',
+					testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
+					use: {
+						baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
+						// screenshot: 'off',
+						// video: {
+						// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						// },
+					},
+				},
+				{
+					name: 'ui-setup',
+					testMatch: '**/saucedemo/*.setup.ts',
+					use: {
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+					},
+				},
+				{
+					name: 'ui-saucedemo-chromium',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
+						...devices['Desktop Chrome'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						video: {
+							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						},
+					},
+					dependencies: ['ui-setup'],
+				},
+				{
+					name: 'ui-saucedemo-webkit',
+					testMatch: '**/saucedemo/*.spec.ts',
+					use: {
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
+						...devices['Desktop Safari'],
+						storageState: '.auth/login.json',
+						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
+						// [FIX] WebKit on Windows crashes when recording video to a path with non-ASCII characters (e.g. "文件").
+						// Solution: Disable video for WebKit or move project to a path with only English characters.
+						video: 'off',
+						// video: {
+						// 	mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						// },
+					},
+					dependencies: ['ui-setup'],
+				},
 
-		// {
-		//   name: 'firefox',
-		//   use: { ...devices['Desktop Firefox'] },
-		// },
+				// {
+				//   name: 'firefox',
+				//   use: { ...devices['Desktop Firefox'] },
+				// },
 
-		// {
-		//   name: 'webkit',
-		//   use: { ...devices['Desktop Safari'] },
-		// },
+				// {
+				//   name: 'webkit',
+				//   use: { ...devices['Desktop Safari'] },
+				// },
 
-		/* ================================================== */
-		/* ==           自訂的環境設定 (Environments)           == */
-		/* ================================================== */
+				/* ================================================== */
+				/* ==           自訂的環境設定 (Environments)           == */
+				/* ================================================== */
 
-		// {
-		//   name: 'dev',
-		//   use: {
-		//     baseURL: 'http://localhost:4000', // 開發環境的 URL
-		//   },
-		// },
+				// {
+				//   name: 'dev',
+				//   use: {
+				//     baseURL: 'http://localhost:4000', // 開發環境的 URL
+				//   },
+				// },
 
-		// {
-		//   name: 'test',
-		//   use: {
-		//     baseURL: 'https://test.your-awesome-app.com', // 測試環境的 URL
-		//   },
-		// },
+				// {
+				//   name: 'test',
+				//   use: {
+				//     baseURL: 'https://test.your-awesome-app.com', // 測試環境的 URL
+				//   },
+				// },
 
-		/* Test against mobile viewports. */
-		// {
-		//   name: 'Mobile Chrome',
-		//   use: { ...devices['Pixel 5'] },
-		// },
-		// {
-		//   name: 'Mobile Safari',
-		//   use: { ...devices['iPhone 12'] },
-		// },
+				/* Test against mobile viewports. */
+				// {
+				//   name: 'Mobile Chrome',
+				//   use: { ...devices['Pixel 5'] },
+				// },
+				// {
+				//   name: 'Mobile Safari',
+				//   use: { ...devices['iPhone 12'] },
+				// },
 
-		/* Test against branded browsers. */
-		// {
-		// 	name: 'Microsoft Edge',
-		// 	use: { ...devices['Desktop Edge'], channel: 'msedge' },
-		// },
-		// {
-		//   name: 'Google Chrome',
-		//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-		// },
-	],
+				/* Test against branded browsers. */
+				// {
+				// 	name: 'Microsoft Edge',
+				// 	use: { ...devices['Desktop Edge'], channel: 'msedge' },
+				// },
+				// {
+				//   name: 'Google Chrome',
+				//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+				// },
+			],
 
 	/* Run your local dev server before starting the tests */
 	// webServer: {
