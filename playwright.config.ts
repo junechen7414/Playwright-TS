@@ -1,5 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
 
+/**
+ * 讀取環境變數
+ * 預設使用 'local'，可以透過命令列傳入 ENV=staging 來改變
+ */
+const environment = (process.env.ENV || 'local').toLowerCase().trim();
+
+// 根據環境載入對應的 .env 檔案
+dotenv.config({
+	path: `.env.${environment}`,
+});
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -66,7 +77,7 @@ export default defineConfig({
 					name: 'ui-setup',
 					testMatch: '**/saucedemo/*.setup.ts',
 					use: {
-						baseURL: 'https://www.saucedemo.com/',
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 						...devices['Desktop Chrome'],
 					},
 				},
@@ -74,7 +85,7 @@ export default defineConfig({
 					name: 'ui-saucedemo-chromium',
 					testMatch: '**/saucedemo/*.spec.ts',
 					use: {
-						baseURL: 'https://www.saucedemo.com/',
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 						...devices['Desktop Chrome'],
 						storageState: '.auth/login.json',
 						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
@@ -91,7 +102,7 @@ export default defineConfig({
 					name: 'api',
 					testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
 					use: {
-						baseURL: 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
+						baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
 						// screenshot: 'off',
 						// video: {
 						// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
@@ -103,7 +114,7 @@ export default defineConfig({
 					name: 'ui-setup',
 					testMatch: '**/saucedemo/*.setup.ts',
 					use: {
-						baseURL: 'https://www.saucedemo.com/',
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 						...devices['Desktop Chrome'],
 					},
 				},
@@ -111,7 +122,7 @@ export default defineConfig({
 					name: 'ui-saucedemo-chromium',
 					testMatch: '**/saucedemo/*.spec.ts',
 					use: {
-						baseURL: 'https://www.saucedemo.com/',
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 						...devices['Desktop Chrome'],
 						storageState: '.auth/login.json',
 						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
@@ -126,14 +137,17 @@ export default defineConfig({
 					name: 'ui-saucedemo-webkit',
 					testMatch: '**/saucedemo/*.spec.ts',
 					use: {
-						baseURL: 'https://www.saucedemo.com/',
+						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
 						...devices['Desktop Safari'],
 						storageState: '.auth/login.json',
 						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-						video: {
-							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-						},
+						// [FIX] WebKit on Windows crashes when recording video to a path with non-ASCII characters (e.g. "文件").
+						// Solution: Disable video for WebKit or move project to a path with only English characters.
+						video: 'off',
+						// video: {
+						// 	mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
+						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
+						// },
 					},
 					dependencies: ['ui-setup'],
 				},
