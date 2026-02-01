@@ -7,9 +7,8 @@
 	"scripts": {
 		"biome:check": "biome check",
 		"biome:fix": "biome check --write",
-		"test-all": "playwright test",
-		"api-test": "playwright test --project=api-platzi-fakestore",
-		"ui-saucedemo-test": "playwright test --project=ui-saucedemo-chromium",
+		"staging-test-all": "set ENV=staging && playwright test",
+		"local-test-all": "playwright test",
 		"echo test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
@@ -18,6 +17,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
 		"@playwright/test": "^1.57.0",
-		"@types/node": "^24.7.2"
+		"@types/node": "^24.7.2",
+		"dotenv": "^17.2.3"
 	}
 }
