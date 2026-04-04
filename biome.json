@@ -19,6 +19,9 @@
 			"recommended": true,
 			"nursery": {
 				"noFloatingPromises": "error"
+			},
+			"correctness":{
+				"noEmptyPattern":"off"
 			}
 		}
 	},
