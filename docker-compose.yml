@@ -1,0 +1,50 @@
+services:
+  # Service Name: app (Spring Boot 應用)
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-junechen7414}/springboot:latest    
+    # 容器名稱，方便指令podman ps 等操作識別和管理，不用於真正的網路通信
+    container_name: spring-boot-app-test
+    ports:
+      - "8787:8787" # 本機訪問請用 localhost:8787
+    environment:
+      # 內部溝通：使用服務名稱 'oracle-db' 而非 localhost
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
+      - SPRING_DATASOURCE_USERNAME=${ORACLE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${ORACLE_PASSWORD}
+    networks:
+      - test-net
+    depends_on:
+      oracle-db:
+        condition: service_healthy # 關鍵：DB 健康才啟動 App
+
+  oracle-db:
+    image: container-registry.oracle.com/database/free:latest
+    container_name: oracle-db-test
+    ports:
+      - "1521:1521"
+    environment:
+      # Oracle DB 的環境變數設定，根據官方文件，這些是必要的參數
+      # Oracle 的啟動腳本（runOracle.sh）內部有一套預設的命名規則（預設 SID 就是 FREE，PDB 就是 FREEPDB1）。
+      - ORACLE_SID=FREE
+      - ORACLE_PDB=FREEPDB1
+      - ORACLE_USERNAME=${ORACLE_USERNAME}
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+    volumes:
+      # 存放啟動腳本
+      - ./init-scripts:/opt/oracle/scripts/startup
+      # 存放範本檔案 (掛載到另一個自定義目錄)
+      - ./init-scripts-template:/opt/oracle/template
+    healthcheck:
+      # 透過 sqlplus 檢查 PDB 是否已經 Ready
+      test: [ "CMD-SHELL", "sqlplus -L ${ORACLE_USERNAME}/${ORACLE_PASSWORD}@FREEPDB1 <<<'exit;'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    networks:
+      - test-net
+
+networks:
+  # 區分網路：app 只需要把資料推給 alloy，不需要直接接觸 prometheus
+  test-net:
+    driver: bridge
