@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import dotenv from 'dotenv';
 
 /**
  * 讀取環境變數
@@ -68,143 +67,68 @@ export default defineConfig({
 		// baseURL: 'localhost:3000',
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'off',
+		screenshot: 'on-first-failure',
+		video: {
+			mode: 'retain-on-failure',
+			size: { width: 1280, height: 960 },
+		},
 	},
 
-	/* Configure projects for major browsers */
-	projects: process.env.CI
-		? [
-				{
-					name: 'ui-setup',
-					testMatch: '**/saucedemo/*.setup.ts',
-					use: {
-						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
-						...devices['Desktop Chrome'],
-					},
-				},
-				{
-					name: 'ui-saucedemo-chromium',
-					testMatch: '**/saucedemo/*.spec.ts',
-					use: {
-						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
-						...devices['Desktop Chrome'],
-						storageState: '.auth/login.json',
-						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-						video: {
-							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-						},
-					},
-					dependencies: ['ui-setup'],
-				},
-			]
-		: [
-				{
-					name: 'api',
-					testMatch: '**/api/*.spec.ts', // 只執行 api 資料夾下的測試
-					use: {
-						baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com/booking', // API 專用的 Base URL
-						// screenshot: 'off',
-						// video: {
-						// 	mode: 'off', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-						// },
-					},
-				},
-				{
-					name: 'ui-setup',
-					testMatch: '**/saucedemo/*.setup.ts',
-					use: {
-						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
-						...devices['Desktop Chrome'],
-					},
-				},
-				{
-					name: 'ui-saucedemo-chromium',
-					testMatch: '**/saucedemo/*.spec.ts',
-					use: {
-						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
-						...devices['Desktop Chrome'],
-						storageState: '.auth/login.json',
-						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-						video: {
-							mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-							size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-						},
-					},
-					dependencies: ['ui-setup'],
-				},
-				{
-					name: 'ui-saucedemo-webkit',
-					testMatch: '**/saucedemo/*.spec.ts',
-					use: {
-						baseURL: process.env.BASE_URL || 'https://www.saucedemo.com/',
-						...devices['Desktop Safari'],
-						storageState: '.auth/login.json',
-						screenshot: 'on-first-failure', // 'on', 'off', 'only-on-failure', 'on-first-failure'
-						// [FIX] WebKit on Windows crashes when recording video to a path with non-ASCII characters (e.g. "文件").
-						// Solution: Disable video for WebKit or move project to a path with only English characters.
-						video: 'off',
-						// video: {
-						// 	mode: 'retain-on-failure', // 'on', 'off', 'retain-on-failure', 'on-first-retry'
-						// 	size: { width: 1280, height: 960 }, // 可選，指定影片解析度
-						// },
-					},
-					dependencies: ['ui-setup'],
-				},
+	projects: [
+		/* --- 1. API 測試 --- */
+		{
+			name: 'api',
+			testMatch: '**/api/*.spec.ts',
+			use: {
+				baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com/booking',
+			},
+		},
 
-				// {
-				//   name: 'firefox',
-				//   use: { ...devices['Desktop Firefox'] },
-				// },
+		/* --- 2. UI Setup (登入預處理) --- */
+		{
+			name: 'ui-setup',
+			testMatch: '**/saucedemo/*.setup.ts',
+			use: {
+				baseURL: 'https://www.saucedemo.com/',
+				...devices['Desktop Chrome'],
+			},
+		},
 
-				// {
-				//   name: 'webkit',
-				//   use: { ...devices['Desktop Safari'] },
-				// },
+		/* --- 3. UI 本地測試 (對接你的 Docker Spring Boot) --- */
+		{
+			name: 'ui-local',
+			testMatch: '**/saucedemo/*.spec.ts',
+			dependencies: ['ui-setup'],
+			use: {
+				baseURL: 'http://localhost:8787', // 對應你 docker-compose 的 port
+				...devices['Desktop Chrome'],
+				storageState: '.auth/login.json',
+			},
+		},
 
-				/* ================================================== */
-				/* ==           自訂的環境設定 (Environments)           == */
-				/* ================================================== */
+		/* --- 4. UI Staging 測試 (對接外部環境) --- */
+		{
+			name: 'ui-staging',
+			testMatch: '**/saucedemo/*.spec.ts',
+			dependencies: ['ui-setup'],
+			use: {
+				baseURL: 'https://www.saucedemo.com/',
+				...devices['Desktop Chrome'],
+				storageState: '.auth/login.json',
+			},
+		},
 
-				// {
-				//   name: 'dev',
-				//   use: {
-				//     baseURL: 'http://localhost:4000', // 開發環境的 URL
-				//   },
-				// },
-
-				// {
-				//   name: 'test',
-				//   use: {
-				//     baseURL: 'https://test.your-awesome-app.com', // 測試環境的 URL
-				//   },
-				// },
-
-				/* Test against mobile viewports. */
-				// {
-				//   name: 'Mobile Chrome',
-				//   use: { ...devices['Pixel 5'] },
-				// },
-				// {
-				//   name: 'Mobile Safari',
-				//   use: { ...devices['iPhone 12'] },
-				// },
-
-				/* Test against branded browsers. */
-				// {
-				// 	name: 'Microsoft Edge',
-				// 	use: { ...devices['Desktop Edge'], channel: 'msedge' },
-				// },
-				// {
-				//   name: 'Google Chrome',
-				//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-				// },
-			],
-
-	/* Run your local dev server before starting the tests */
-	// webServer: {
-	//   command: 'npm run start',
-	//   url: 'http://localhost:3000',
-	//   reuseExistingServer: !process.env.CI,
-	// },
+		/* --- 5. WebKit 專屬 (處理你提到的 Windows Crash 問題) --- */
+		{
+			name: 'ui-webkit',
+			testMatch: '**/saucedemo/*.spec.ts',
+			dependencies: ['ui-setup'],
+			use: {
+				baseURL: 'https://www.saucedemo.com/',
+				...devices['Desktop Safari'],
+				video: 'off', // 避開非 ASCII 路徑崩潰
+				storageState: '.auth/login.json',
+			},
+		},
+	],
 });
