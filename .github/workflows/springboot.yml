@@ -58,7 +58,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Playwright tests
-        run: pnpm playwright test
+        run: pnpm playwright test --project=springboot-api
         env:
           # 指向剛啟動的 Docker 容器位址 (通常是 localhost:8787)
           BASE_URL: http://localhost:8787
