@@ -33,6 +33,9 @@ jobs:
       # 步驟 A：啟動環境 (包含後端 Image 和 Oracle DB)
       - name: Start Environment with Docker Compose
         run: docker compose -f docker-compose.test.yml up -d --quiet-pull
+        env:
+          ORACLE_USERNAME: ${{ secrets.DB_USER }}
+          ORACLE_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       # 步驟 B：等待健康檢查 (重點：這會持續檢查直到後端變為 healthy)
       - name: Start Environment and Wait
