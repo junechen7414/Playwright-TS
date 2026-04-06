@@ -30,19 +30,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # 步驟 A：啟動環境 (包含後端 Image 和 Oracle DB)
-      - name: Start Environment with Docker Compose
-        run: docker compose -f docker-compose.test.yml up -d --quiet-pull
+      # 原本的 A、B 步驟合併為這一個
+      - name: Start Environment and Wait
         env:
           ORACLE_USERNAME: ${{ secrets.DB_USER }}
           ORACLE_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
-      # 步驟 B：等待健康檢查 (重點：這會持續檢查直到後端變為 healthy)
-      - name: Start Environment and Wait
+          # 這裡也可以順便帶入 GITHUB_REPOSITORY_OWNER 給 Docker Compose 使用
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
-          # --wait 參數會參考 compose 檔裡的 healthcheck
-          # 它會卡住直到所有標有 healthcheck 的服務都變成 healthy
-          docker compose -f docker-compose.test.yml up -d --wait
+          # 1. 啟動並等待健康檢查完成
+          # --quiet-pull 減少日誌干擾，--wait 會參考你 compose 裡的 healthcheck
+          docker compose -f docker-compose.test.yml up -d --wait --quiet-pull
+          
+          # 2. (選用) 萬一失敗了，印出日誌方便除錯
+          if [ $? -ne 0 ]; then
+            docker compose -f docker-compose.test.yml logs
+            exit 1
+          fi
 
       # 步驟 C：執行測試 (利用 Playwright 容器跑，或者在本機跑)
       - name: Install pnpm
