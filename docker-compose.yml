@@ -1,13 +1,15 @@
 services:
   # Service Name: app (Spring Boot 應用)
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-junechen7414}/springboot:latest    
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-junechen7414}/springboot:latest
+    pull_policy: always # 確保每次測試都使用最新的映像檔，避免因為舊映像檔導致測試不一致    
     # 容器名稱，方便指令podman ps 等操作識別和管理，不用於真正的網路通信
     container_name: spring-boot-app-test
     ports:
       - "8787:8787" # 本機訪問請用 localhost:8787
     environment:
       # 內部溝通：使用服務名稱 'oracle-db' 而非 localhost
+      - SPRING_PROFILES_ACTIVE=test
       - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
       - SPRING_DATASOURCE_USERNAME=${ORACLE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${ORACLE_PASSWORD}
@@ -45,6 +47,5 @@ services:
       - test-net
 
 networks:
-  # 區分網路：app 只需要把資料推給 alloy，不需要直接接觸 prometheus
   test-net:
     driver: bridge
