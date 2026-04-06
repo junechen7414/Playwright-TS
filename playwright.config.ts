@@ -68,13 +68,10 @@ export default defineConfig({
 
 		/* --- 3. UI 本地測試 (對接你的 Docker Spring Boot) --- */
 		{
-			name: 'ui-local',
-			testMatch: '**/saucedemo/*.spec.ts',
-			dependencies: ['ui-setup'],
+			name: 'springboot-api',
+			testMatch: '**/springboot/*.spec.ts',
 			use: {
-				baseURL: 'http://localhost:8787', // 對應你 docker-compose 的 port
-				...devices['Desktop Chrome'],
-				storageState: '.auth/login.json',
+				baseURL: 'http://localhost:8787/', // 對應你 docker-compose 的 port
 			},
 		},
 
