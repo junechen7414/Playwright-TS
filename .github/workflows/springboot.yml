@@ -1,0 +1,69 @@
+on:
+  # 支援手動觸發
+  workflow_dispatch:
+  # 支援後端連動觸發 (由後端 Action 發送訊號)
+  repository_dispatch:
+    types: [backend_image_updated]
+  # 支援 PR 觸發
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e-test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    # 注意：我們移除原本的 container 設定，改在 Runner 本機操作 Docker Compose
+    # 這樣才能同時管理多個容器 (App, DB, Playwright)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # 步驟 A：啟動環境 (包含後端 Image 和 Oracle DB)
+      - name: Start Environment with Docker Compose
+        run: docker compose -f docker-compose.test.yml up -d --quiet-pull
+
+      # 步驟 B：等待健康檢查 (重點：這會持續檢查直到後端變為 healthy)
+      - name: Start Environment and Wait
+        run: |
+          # --wait 參數會參考 compose 檔裡的 healthcheck
+          # 它會卡住直到所有標有 healthcheck 的服務都變成 healthy
+          docker compose -f docker-compose.test.yml up -d --wait
+
+      # 步驟 C：執行測試 (利用 Playwright 容器跑，或者在本機跑)
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Playwright tests
+        run: pnpm playwright test
+        env:
+          # 指向剛啟動的 Docker 容器位址 (通常是 localhost:8787)
+          BASE_URL: http://localhost:8787
+          
+      - name: Stop Environment
+        if: always()
+        run: docker compose -f docker-compose.test.yml down
+
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
