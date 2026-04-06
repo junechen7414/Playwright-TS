@@ -1,4 +1,4 @@
-import { expect, bookingApiTest as test } from '../../fixtures/ApiObjects.fixture';
+import { expect, bookingApiTest as test } from '../../fixtures/RestfulBookerApiObjects.fixture';
 
 test.describe('Booking API Tests', () => {
 	test('create a booking', async ({ bookingApi, newBookingPayload }) => {
