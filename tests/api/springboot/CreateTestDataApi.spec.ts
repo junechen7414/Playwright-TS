@@ -8,17 +8,12 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 		let accountId: number;
 
 		test('應該能建立新帳號', async ({ springbootApi, newAccountData }) => {
-			const response = await springbootApi.createAccount(newAccountData.name);
+			const response = await springbootApi.createAccount({ name: newAccountData.name });
 			// 1. 硬驗證：確保伺服器回覆 2xx
 			expect(response.ok()).toBeTruthy();
 
-			const data = await response.json();
-			// 2. 軟驗證：檢查欄位與預設狀態
-			expect.soft(data).toMatchObject({
-				name: newAccountData.name,
-				status: 'ACTIVE',
-			});
-			accountId = data.id;
+			accountId = await response.json(); // 回傳的是 ID (number)
+			expect.soft(typeof accountId).toBe('number');
 		});
 
 		test('應該能取得帳號詳情', async ({ springbootApi, newAccountData }) => {
@@ -60,12 +55,8 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 			const response = await springbootApi.createProduct(newProductData);
 			expect(response.ok()).toBeTruthy();
 
-			const data = await response.json();
-			expect.soft(data).toMatchObject({
-				name: newProductData.name,
-				status: 'AVAILABLE',
-			});
-			productId = data.id;
+			productId = await response.json(); // 回傳的是 ID (number)
+			expect.soft(typeof productId).toBe('number');
 		});
 
 		test('應該能更新商品價格與庫存', async ({
@@ -117,23 +108,18 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 		test('應該能建立新訂單', async ({ springbootApi }) => {
 			const response = await springbootApi.createOrder({
 				accountId: accountId,
-				items: [{ productId: productId, quantity: 2 }],
+				orderDetails: [{ productId: productId, quantity: 2 }],
 			});
 			expect(response.ok()).toBeTruthy();
 
-			const data = await response.json();
-			expect.soft(data).toMatchObject({
-				accountId: accountId,
-				items: expect.arrayContaining([expect.objectContaining({ productId, quantity: 2 })]),
-			});
-			orderId = data.id;
+			orderId = await response.json(); // 回傳的是 ID (number)
+			expect.soft(typeof orderId).toBe('number');
 		});
 
 		test('應該能更新訂單明細數量與狀態', async ({ springbootApi }) => {
 			const response = await springbootApi.updateOrder({
 				orderId: orderId,
-				accountId: accountId,
-				orderStatus: 'SHIPPED',
+				orderStatus: 1001,
 				items: [
 					{
 						productId: productId,
