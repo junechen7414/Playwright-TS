@@ -27,11 +27,11 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 2 : 3,
 
-	outputDir: `playwright-report/`,
+	outputDir: 'test-results/',
 
 	// CI 與本地 Reporter 區分報告產出路徑
 	reporter: process.env.CI
-		? [['list'], ['html', { outFolder: `playwright-report/`, open: 'never' }]]
+		? [['list'], ['html', { outputFolder: 'playwright-report/', open: 'never' }]]
 		: [
 				['list'],
 				['html', { outputFolder: `playwright-report/${process.env.PW_DATE}`, open: 'never' }],
