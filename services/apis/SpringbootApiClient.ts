@@ -1,33 +1,7 @@
+import type { components } from '../../schema/api-types';
 import { BaseApiClient } from './BaseApiClient';
 
-/**
- * API Request Payloads
- */
-export interface AccountPayload {
-	id?: number;
-	name: string;
-	status?: string;
-}
-
-export interface ProductPayload {
-	id?: number;
-	name: string;
-	price: number;
-	available: number;
-	status?: string;
-}
-
-export interface OrderItem {
-	productId: number;
-	quantity: number;
-}
-
-export interface OrderPayload {
-	orderId?: number;
-	accountId: number;
-	items: OrderItem[];
-	orderStatus?: string;
-}
+type Schemas = components['schemas'];
 
 /**
  * Springboot API Client
@@ -44,8 +18,8 @@ export class SpringbootApiClient extends BaseApiClient {
 	/**
 	 * Account 相關操作
 	 */
-	createAccount(name: string) {
-		return this.post(`${this.endpoints.account}/create`, { data: { name } });
+	createAccount(payload: Schemas['CreateAccountRequest']) {
+		return this.post(`${this.endpoints.account}/create`, { data: payload });
 	}
 
 	getAccount(id: number) {
@@ -56,8 +30,11 @@ export class SpringbootApiClient extends BaseApiClient {
 		return this.get(`${this.endpoints.account}/getList`);
 	}
 
-	updateAccount(payload: AccountPayload) {
-		return this.put(`${this.endpoints.account}/update`, { data: payload });
+	updateAccount(payload: Schemas['UpdateAccountRequest']) {
+		const params: Record<string, string | number | boolean> = { id: payload.id };
+		if (payload.name) params.name = payload.name;
+		if (payload.status) params.status = payload.status;
+		return this.put(`${this.endpoints.account}/update`, { params });
 	}
 
 	deleteAccount(id: number) {
@@ -67,7 +44,7 @@ export class SpringbootApiClient extends BaseApiClient {
 	/**
 	 * Product 相關操作
 	 */
-	createProduct(payload: ProductPayload) {
+	createProduct(payload: Schemas['CreateProductRequest']) {
 		return this.post(`${this.endpoints.product}/create`, { data: payload });
 	}
 
@@ -79,8 +56,15 @@ export class SpringbootApiClient extends BaseApiClient {
 		return this.get(`${this.endpoints.product}/getList`);
 	}
 
-	updateProduct(payload: ProductPayload) {
-		return this.put(`${this.endpoints.product}/update`, { data: payload });
+	updateProduct(payload: Schemas['UpdateProductRequest']) {
+		const params: Record<string, string | number | boolean> = {
+			id: payload.id,
+			price: payload.price,
+			saleStatus: payload.saleStatus,
+			available: payload.available,
+		};
+		if (payload.name) params.name = payload.name;
+		return this.put(`${this.endpoints.product}/update`, { params });
 	}
 
 	deleteProduct(id: number) {
@@ -90,7 +74,7 @@ export class SpringbootApiClient extends BaseApiClient {
 	/**
 	 * Order 相關操作
 	 */
-	createOrder(payload: OrderPayload) {
+	createOrder(payload: Schemas['CreateOrderRequest']) {
 		return this.post(`${this.endpoints.order}/create`, { data: payload });
 	}
 
@@ -102,7 +86,7 @@ export class SpringbootApiClient extends BaseApiClient {
 		return this.get(`${this.endpoints.order}/getList/${accountId}`);
 	}
 
-	updateOrder(payload: OrderPayload) {
+	updateOrder(payload: Schemas['UpdateOrderRequest']) {
 		return this.put(`${this.endpoints.order}/update`, { data: payload });
 	}
 
