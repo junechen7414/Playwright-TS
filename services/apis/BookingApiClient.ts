@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { BaseApiClient } from './BaseApiClient';
+import { ApiRequester } from './BaseApiClient';
 
 export interface CreateBookingPayload {
 	firstname: string;
@@ -35,21 +35,22 @@ export interface UpdateBookingResponse {
 	booking: CreateBookingPayload;
 }
 
-export class BookingApiClient extends BaseApiClient {
+export class BookingApiClient {
 	private readonly endpoint: string;
 	private token: string;
+	private readonly requester: ApiRequester;
 
 	constructor(request: APIRequestContext) {
-		super(request);
 		this.endpoint = '/booking';
 		this.token = '';
+		this.requester = new ApiRequester(request);
 	}
 
 	async getToken() {
 		if (this.token) {
 			return this.token;
 		}
-		const response = await this.post('/auth', {
+		const response = await this.requester.post('/auth', {
 			data: {
 				username: 'admin',
 				password: 'password123',
@@ -64,14 +65,14 @@ export class BookingApiClient extends BaseApiClient {
 	 * Read產品資料
 	 */
 	async getBookingById(id: number) {
-		return await this.get(`${this.endpoint}/${id}`);
+		return await this.requester.get(`${this.endpoint}/${id}`);
 	}
 
 	/**
 	 * Create產品資料
 	 */
 	async createBooking(payload: CreateBookingPayload) {
-		return await this.post(this.endpoint, {
+		return await this.requester.post(this.endpoint, {
 			data: payload,
 		});
 	}
@@ -80,7 +81,7 @@ export class BookingApiClient extends BaseApiClient {
 	 * Update產品資料
 	 */
 	async updateBooking(id: number, payload: UpdateBookingPayload) {
-		return await this.put(`${this.endpoint}/${id}`, {
+		return await this.requester.put(`${this.endpoint}/${id}`, {
 			data: payload,
 			headers: { Cookie: await this.getToken() },
 		});
@@ -90,7 +91,7 @@ export class BookingApiClient extends BaseApiClient {
 	 * Delete產品資料
 	 */
 	async deleteBooking(id: number) {
-		return await this.delete(`${this.endpoint}/${id}`, {
+		return await this.requester.delete(`${this.endpoint}/${id}`, {
 			headers: { Cookie: await this.getToken() },
 		});
 	}
