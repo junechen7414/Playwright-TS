@@ -208,6 +208,37 @@
         }
       }
     },
+    "/PlaywrightTestData/createOrderPrecondition": {
+      "post": {
+        "tags": [
+          "playwright-test-data-controller"
+        ],
+        "operationId": "createOrderPrecondition",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/product/getList": {
       "get": {
         "tags": [
