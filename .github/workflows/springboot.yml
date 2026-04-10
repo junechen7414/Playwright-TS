@@ -7,8 +7,6 @@ on:
   # 支援 PR 觸發
   pull_request:
     branches: [main]
-  push:
-    branches: [Springboot-playwright-test-v1]
 
 jobs:
   e2e-test:
@@ -66,6 +64,17 @@ jobs:
         run: |
           pwd
           ls -R
+
+      - name: Debug - List Files and Config
+        run: |
+          echo "--- 目前路徑 ---"
+          pwd
+          echo "--- 根目錄檔案 ---"
+          ls -F
+          echo "--- 搜尋 config 檔案 ---"
+          find . -name "playwright.config.*"
+          echo "--- 搜尋測試 spec 檔案 ---"
+          find . -name "*.spec.ts"
 
       - name: Run Playwright tests
         run: pnpm playwright test --project=springboot-api
