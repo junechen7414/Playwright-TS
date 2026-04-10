@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }} 
+          ref: main # 或者你測試程式所在的 branch 名稱
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
