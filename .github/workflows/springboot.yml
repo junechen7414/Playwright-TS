@@ -7,6 +7,8 @@ on:
   # 支援 PR 觸發
   pull_request:
     branches: [main]
+  push:
+    branches: [Springboot-playwright-test-v1]
 
 jobs:
   e2e-test:
@@ -56,6 +58,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: List files for debugging
+        run: |
+          pwd
+          ls -R
 
       - name: Run Playwright tests
         run: pnpm playwright test --project=springboot-api
