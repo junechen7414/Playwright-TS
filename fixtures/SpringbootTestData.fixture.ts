@@ -1,12 +1,14 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import type { AccountPayload, ProductPayload } from '../services/apis/SpringbootApiClient';
+import type { components } from '../schema/api-types';
 
 type SpringbootDataFixtures = {
-	newAccountData: AccountPayload;
-	updatedAccountData: (id: number, username: string) => AccountPayload;
-	newProductData: ProductPayload;
-	updatedProductData: (id: number, name: string) => ProductPayload;
+	newAccountData: components['schemas']['CreateAccountRequest'];
+	updateAccountData: (
+		existingAccount: components['schemas']['UpdateAccountRequest'],
+	) => components['schemas']['UpdateAccountRequest'];
+	newProductData: components['schemas']['CreateProductRequest'];
+	updateProductData: (existingProductId: number) => components['schemas']['UpdateProductRequest'];
 };
 
 /**
@@ -19,16 +21,13 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 			name: `user_${faker.string.alphanumeric(8)}`,
 		});
 	},
-
-	// 更新帳號的資料範本
-	updatedAccountData: async ({}, use) => {
-		await use(
-			(id: number, name: string): AccountPayload => ({
-				id,
-				name,
-				status: 'INACTIVE',
-			}),
-		);
+	// 更新帳號的資料
+	updateAccountData: async ({}, use) => {
+		await use((existingAccount) => ({
+			id: existingAccount.id,
+			name: faker.person.fullName(),
+			status: 'Y',
+		}));
 	},
 
 	// 建立新商品的資料
@@ -37,20 +36,16 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 			name: `Prod_${faker.commerce.productName()}_${faker.string.alphanumeric(4)}`,
 			price: faker.number.int({ min: 10, max: 1000 }),
 			available: faker.number.int({ min: 1, max: 100 }),
-			status: 'AVAILABLE',
 		});
 	},
-
-	// 更新商品的資料範本
-	updatedProductData: async ({}, use) => {
-		await use(
-			(id: number, name: string): ProductPayload => ({
-				id,
-				name,
-				price: faker.number.int({ min: 10, max: 1000 }),
-				available: faker.number.int({ min: 1, max: 100 }),
-				status: 'ON_SALE',
-			}),
-		);
+	// 更新商品的資料
+	updateProductData: async ({}, use) => {
+		await use((existingProductId) => ({
+			id: existingProductId,
+			name: `Updated_Product_${faker.number.int({ min: 1, max: 100 })}`,
+			price: faker.number.int({ min: 10, max: 1000 }),
+			available: faker.number.int({ min: 1, max: 100 }),
+			saleStatus: 1001, // 假設 1001 代表 "ON_SALE"
+		}));
 	},
 });

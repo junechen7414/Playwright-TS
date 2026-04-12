@@ -2,11 +2,15 @@ import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
 import { SpringbootApiClient } from '../services/apis/SpringbootApiClient';
 
+type CleanupBox = { ids: number[] };
 type SpringbootApiFixtures = {
 	springbootApi: SpringbootApiClient;
 	existingAccount: { id: number; name: string; status: string };
+	accountFixtureDeletedAfterward: CleanupBox;
 	existingProductId: number;
+	productFixtureDeletedAfterward: CleanupBox;
 	existingOrder: { accountId: number; productId: number; orderId: number };
+	orderFixtureDeletedAfterward: CleanupBox;
 	existingMultipleOrdersAccountId: number;
 };
 
@@ -34,6 +38,16 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 			/*靜默處理*/
 		});
 	},
+	accountFixtureDeletedAfterward: async ({ springbootApi }, use) => {
+		const box: CleanupBox = { ids: [] };
+		await use(box);
+		for (const id of box.ids) {
+			await springbootApi.deleteAccount(id).catch(() => {
+				/* 靜默處理，防止清理失敗影響測試結果 */
+			});
+		}
+	},
+
 	existingProductId: async ({ springbootApi }, use) => {
 		// 在 fixture 中建立一筆商品資料，並在測試結束後刪除，確保測試獨立性
 		const createResponse = await springbootApi.createProduct({
@@ -51,6 +65,15 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 			/*靜默處理*/
 		});
 	},
+	productFixtureDeletedAfterward: async ({ springbootApi }, use) => {
+		const box: CleanupBox = { ids: [] };
+		await use(box);
+		for (const id of box.ids) {
+			await springbootApi.deleteProduct(id).catch(() => {
+				/* 靜默處理，防止清理失敗影響測試結果 */
+			});
+		}
+	},
 	existingOrder: async ({ springbootApi, existingAccount, existingProductId }, use) => {
 		// 在 fixture 中建立一筆訂單資料，並在測試結束後刪除，確保測試獨立性
 		const createResponse = await springbootApi.createOrder({
@@ -63,11 +86,20 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 			throw new Error('Failed to create order for fixture');
 		}
 		const orderId = await createResponse.json();
-		await use(orderId);
+		await use({ orderId: orderId, accountId: existingAccount.id, productId: existingProductId });
 		await springbootApi.deleteOrder(orderId).catch(() => {
 			// 忽略已經被測試刪除的情況
 			/*靜默處理*/
 		});
+	},
+	orderFixtureDeletedAfterward: async ({ springbootApi }, use) => {
+		const box: CleanupBox = { ids: [] };
+		await use(box);
+		for (const id of box.ids) {
+			await springbootApi.deleteOrder(id).catch(() => {
+				/* 靜默處理，防止清理失敗影響測試結果 */
+			});
+		}
 	},
 	existingMultipleOrdersAccountId: async (
 		{ springbootApi, existingOrder, existingProductId },
