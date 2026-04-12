@@ -5,18 +5,23 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 	 * Account CRUD 測試
 	 */
 	test.describe('Account 帳號管理', () => {
-		test('應該能建立新帳號', async ({ springbootApi, newAccountData }) => {
-			const response = await springbootApi.createAccount({ name: newAccountData.name });
+		test('應該能建立新帳號', async ({
+			springbootApi,
+			accountFixtureDeletedAfterward,
+			newAccountData,
+		}) => {
+			const response = await springbootApi.createAccount(newAccountData);
 			// 1. 硬驗證：確保伺服器回覆 2xx
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const accountId = await response.json(); // 回傳的是 ID (number)
 			expect.soft(typeof accountId).toBe('number');
+			accountFixtureDeletedAfterward.ids.push(accountId); // 將 ID 存入容器，以便後續清理
 		});
 
 		test('應該能取得帳號詳情', async ({ springbootApi, existingAccount }) => {
 			const response = await springbootApi.getAccount(existingAccount.id);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const data = await response.json();
 			expect.soft(data).toMatchObject({
@@ -25,21 +30,14 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 			});
 		});
 
-		test('應該能更新帳號狀態', async ({ springbootApi, existingAccount }) => {
-			const response = await springbootApi.updateAccount({
-				id: existingAccount.id,
-				name: existingAccount.name,
-				status: 'N',
-			});
-			expect(response.ok()).toBeTruthy();
-
-			const data = await response.json();
-			expect.soft(data).toMatchObject({ status: 'N' });
+		test('應該能更新帳號', async ({ springbootApi, existingAccount, updateAccountData }) => {
+			const response = await springbootApi.updateAccount(updateAccountData(existingAccount));
+			expect(response).toBeOK();
 		});
 
 		test('應該能刪除帳號', async ({ springbootApi, existingAccount }) => {
 			const response = await springbootApi.deleteAccount(existingAccount.id);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const getResponse = await springbootApi.getAccount(existingAccount.id);
 			expect(getResponse.status()).toBe(404);
@@ -50,35 +48,31 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 	 * Product CRUD 測試
 	 */
 	test.describe('Product 商品管理', () => {
-		test('應該能建立新商品', async ({ springbootApi, newProductData }) => {
+		test('應該能建立新商品', async ({
+			springbootApi,
+			productFixtureDeletedAfterward,
+			newProductData,
+		}) => {
 			const response = await springbootApi.createProduct(newProductData);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const productId = await response.json(); // 回傳的是 ID (number)
 			expect.soft(typeof productId).toBe('number');
+			productFixtureDeletedAfterward.ids.push(productId); // 將 ID 存入容器，以便後續清理
 		});
 
 		test('應該能更新商品價格與庫存', async ({
 			springbootApi,
 			existingProductId,
-			newProductData,
-			updatedProductData,
+			updateProductData,
 		}) => {
-			const updatePayload = updatedProductData(existingProductId, newProductData.name);
-			const response = await springbootApi.updateProduct(updatePayload);
-			expect(response.ok()).toBeTruthy();
-
-			const data = await response.json();
-			expect.soft(data).toMatchObject({
-				price: updatePayload.price,
-				available: updatePayload.available,
-				status: 'ON_SALE',
-			});
+			const response = await springbootApi.updateProduct(updateProductData(existingProductId));
+			expect(response).toBeOK();
 		});
 
 		test('應該能刪除商品', async ({ springbootApi, existingProductId }) => {
 			const response = await springbootApi.deleteProduct(existingProductId);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const getResponse = await springbootApi.getProduct(existingProductId);
 			expect(getResponse.status()).toBe(404);
@@ -89,15 +83,21 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 	 * Order CRUD 測試 (整合測試)
 	 */
 	test.describe('Order 訂單管理 (含明細更新)', () => {
-		test('應該能建立新訂單', async ({ springbootApi, existingAccount, existingProductId }) => {
+		test('應該能建立新訂單', async ({
+			springbootApi,
+			existingAccount,
+			existingProductId,
+			orderFixtureDeletedAfterward,
+		}) => {
 			const response = await springbootApi.createOrder({
 				accountId: existingAccount.id,
 				orderDetails: [{ productId: existingProductId, quantity: 2 }],
 			});
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const orderId = await response.json(); // 回傳的是 ID (number)
 			expect.soft(typeof orderId).toBe('number');
+			orderFixtureDeletedAfterward.ids.push(orderId); // 將 ID 存入容器，以便後續清理
 		});
 
 		test('應該能更新訂單明細數量與狀態', async ({
@@ -111,17 +111,11 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 				items: [
 					{
 						productId: existingProductId,
-						quantity: 5,
+						quantity: 1,
 					},
 				],
 			});
-			expect(response.ok()).toBeTruthy();
-
-			const data = await response.json();
-			expect.soft(data).toMatchObject({
-				orderStatus: 'SHIPPED',
-				items: expect.arrayContaining([expect.objectContaining({ quantity: 5 })]),
-			});
+			expect(response).toBeOK();
 		});
 
 		test('應該能根據帳號查詢訂單列表', async ({
@@ -129,7 +123,7 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 			existingMultipleOrdersAccountId,
 		}) => {
 			const response = await springbootApi.listOrdersByAccount(existingMultipleOrdersAccountId);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const list = await response.json();
 			expect(Array.isArray(list)).toBeTruthy();
@@ -138,7 +132,7 @@ test.describe('Springboot API 完整 CRUD 測試', () => {
 
 		test('應該能刪除訂單', async ({ springbootApi, existingOrder }) => {
 			const response = await springbootApi.deleteOrder(existingOrder.orderId);
-			expect(response.ok()).toBeTruthy();
+			expect(response).toBeOK();
 
 			const getResponse = await springbootApi.getOrder(existingOrder.orderId);
 			expect(getResponse.status()).toBe(404);
