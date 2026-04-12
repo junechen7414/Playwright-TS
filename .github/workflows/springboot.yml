@@ -60,22 +60,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: List files for debugging
-        run: |
-          pwd
-          ls -R
-
-      - name: Debug - List Files and Config
-        run: |
-          echo "--- 目前路徑 ---"
-          pwd
-          echo "--- 根目錄檔案 ---"
-          ls -F
-          echo "--- 搜尋 config 檔案 ---"
-          find . -name "playwright.config.*"
-          echo "--- 搜尋測試 spec 檔案 ---"
-          find . -name "*.spec.ts"
-
       - name: Run Playwright tests
         run: pnpm playwright test --project=springboot-api
         env:
