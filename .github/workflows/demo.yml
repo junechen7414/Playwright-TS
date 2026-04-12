@@ -49,7 +49,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Playwright tests
-        run: pnpm playwright test
+        run: pnpm playwright test --project=ui-staging --project=api
         env:
           # 告知 Playwright 直接使用容器內的瀏覽器，跳過版本檢查與下載邏輯
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
