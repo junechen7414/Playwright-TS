@@ -1,4 +1,4 @@
-import { expect, test } from '../../../fixtures/SpringbootCombined.fixture';
+import { expect, test } from '../../../fixtures/springboot-chained.fixture';
 
 test.describe('Springboot API 完整 CRUD 測試', () => {
 	/**

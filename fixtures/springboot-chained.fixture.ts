@@ -1,6 +1,6 @@
 import { mergeTests } from '@playwright/test';
-import { springbootApiTest } from './SpringbootApiObjects.fixture';
-import { springbootTestData } from './SpringbootTestData.fixture';
+import { springbootApiTest } from './springboot-api-objects.fixture';
+import { springbootTestData } from './springboot-test-data.fixture';
 
 // 使用組合 (Composition) 取代繼承 (Inheritance)
 export const test = mergeTests(springbootApiTest, springbootTestData);
