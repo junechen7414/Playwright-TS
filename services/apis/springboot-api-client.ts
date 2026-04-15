@@ -1,6 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
 import type { components } from '../../schema/api-types';
-import { ApiRequester } from './BaseApiClient';
+import { ApiRequester } from './base-api-client';
 
 type Schemas = components['schemas'];
 

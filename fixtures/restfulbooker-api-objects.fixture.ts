@@ -3,7 +3,7 @@ import {
 	BookingApiClient,
 	type CreateBookingPayload,
 	type UpdateBookingPayload,
-} from '../services/apis/BookingApiClient';
+} from '../services/apis/booking-api-client';
 
 const newBookingPayload: CreateBookingPayload = {
 	firstname: 'Jim',

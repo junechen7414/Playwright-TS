@@ -20,7 +20,7 @@ type SauceDataFixtures = {
 	lockedUserData: UserCredential;
 	invalidUserData: UserCredential;
 	loginErrorData: ErrorDatas;
-	productsToAdd: readonly Product[];
+	productsToAdd: Product[];
 	productToView: Product;
 	checkoutPersonData: CheckoutPersonData;
 };
@@ -44,7 +44,7 @@ const SAUCE_DATA = {
 	// 這邊直接放 Staging 環境需要的產品列表
 	productsToAdd: ['Sauce Labs Onesie', 'Sauce Labs Fleece Jacket'],
 	productToView: 'Sauce Labs Backpack',
-} as const;
+};
 
 // ==========================================
 // 3. 核心 Fixture 邏輯

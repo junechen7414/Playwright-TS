@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { ApiRequester } from './BaseApiClient';
+import { ApiRequester } from './base-api-client';
 
 export interface CreateBookingPayload {
 	firstname: string;
