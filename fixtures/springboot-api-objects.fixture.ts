@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import { SpringbootApiClient } from '../services/apis/SpringbootApiClient';
+import { SpringbootApiClient } from '../services/apis/springboot-api-client';
 
 type CleanupBox = { ids: number[] };
 type SpringbootApiFixtures = {
