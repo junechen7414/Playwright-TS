@@ -17,11 +17,9 @@ jobs:
     # 這樣才能同時管理多個容器 (App, DB, Playwright)
 
     steps:
+      # 使用預設的動作來管理 ref 和 repo 相關資訊，在PR的時候不用寫三元運算子
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }} 
-          ref: main # 或者你測試程式所在的 branch 名稱
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
