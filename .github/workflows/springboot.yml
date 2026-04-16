@@ -61,7 +61,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Update API Types from Swagger
-        run: pnpm api:update
+        run: pnpm api-spec:update
 
       - name: Run Playwright tests
         run: pnpm playwright test --project=springboot-api
