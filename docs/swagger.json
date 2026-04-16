@@ -11,7 +11,36 @@
     }
   ],
   "paths": {
-    "/product/update": {
+    "/product/{id}": {
+      "get": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "getProductDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProductDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": [
           "product-controller"
@@ -21,11 +50,46 @@
         "operationId": "updateProduct",
         "parameters": [
           {
-            "name": "updateProductRequest",
-            "in": "query",
+            "name": "id",
+            "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/UpdateProductRequest"
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "product-controller"
+        ],
+        "summary": "刪除商品",
+        "description": "找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除",
+        "operationId": "deleteProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -36,7 +100,7 @@
         }
       }
     },
-    "/order/update": {
+    "/order": {
       "put": {
         "tags": [
           "order-controller"
@@ -59,92 +123,7 @@
             "description": "OK"
           }
         }
-      }
-    },
-    "/account/update": {
-      "put": {
-        "tags": [
-          "account-controller"
-        ],
-        "summary": "修改帳戶",
-        "description": "該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功",
-        "operationId": "updateAccount",
-        "parameters": [
-          {
-            "name": "updateAccountRequest",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/UpdateAccountRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/product/processOrderItems": {
-      "post": {
-        "tags": [
-          "product-controller"
-        ],
-        "summary": "處理訂單中的商品",
-        "description": "處理訂單中的商品資訊",
-        "operationId": "processOrderItems",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProcessOrderItemsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/product/create": {
-      "post": {
-        "tags": [
-          "product-controller"
-        ],
-        "summary": "新增商品",
-        "description": "如果有同名商品拋出特定例外，沒有則新增成功",
-        "operationId": "createProduct",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/order/create": {
+      },
       "post": {
         "tags": [
           "order-controller"
@@ -177,7 +156,196 @@
         }
       }
     },
-    "/account/create": {
+    "/account/{id}": {
+      "get": {
+        "tags": [
+          "account-controller"
+        ],
+        "operationId": "getAccountDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAccountDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "account-controller"
+        ],
+        "summary": "修改帳戶",
+        "description": "該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功",
+        "operationId": "updateAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account-controller"
+        ],
+        "summary": "刪除帳戶",
+        "description": "找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除",
+        "operationId": "deleteAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/product": {
+      "get": {
+        "tags": [
+          "product-controller"
+        ],
+        "operationId": "getProductList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetProductListResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "product-controller"
+        ],
+        "summary": "新增商品",
+        "description": "如果有同名商品拋出特定例外，沒有則新增成功",
+        "operationId": "createProduct",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product/processOrderItems": {
+      "post": {
+        "tags": [
+          "product-controller"
+        ],
+        "summary": "處理訂單中的商品",
+        "description": "處理訂單中的商品資訊",
+        "operationId": "processOrderItems",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessOrderItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/account": {
+      "get": {
+        "tags": [
+          "account-controller"
+        ],
+        "operationId": "getAccountList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetAccountListResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "account-controller"
@@ -239,37 +407,12 @@
         }
       }
     },
-    "/product/getList": {
+    "/product/batch": {
       "get": {
         "tags": [
           "product-controller"
         ],
-        "operationId": "getProductList",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GetProductListResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/product/getDetails": {
-      "get": {
-        "tags": [
-          "product-controller"
-        ],
-        "summary": "多個ID取得多筆資料",
-        "description": "盡力找沒找到不拋出例外回傳空list，找到則回傳",
-        "operationId": "getProductDetails",
+        "operationId": "getProductBatch",
         "parameters": [
           {
             "name": "ids",
@@ -291,8 +434,8 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
+                  "type": "array",
+                  "items": {
                     "$ref": "#/components/schemas/GetProductDetailResponse"
                   }
                 }
@@ -302,15 +445,15 @@
         }
       }
     },
-    "/product/getDetail/{id}": {
+    "/order/{orderId}": {
       "get": {
         "tags": [
-          "product-controller"
+          "order-controller"
         ],
-        "operationId": "getProductDetail",
+        "operationId": "getOrderDetails",
         "parameters": [
           {
-            "name": "id",
+            "name": "orderId",
             "in": "path",
             "required": true,
             "schema": {
@@ -325,15 +468,39 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetProductDetailResponse"
+                  "$ref": "#/components/schemas/GetOrderDetailResponse"
                 }
               }
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "order-controller"
+        ],
+        "summary": "刪除訂單",
+        "description": "訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存",
+        "operationId": "deleteOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
-    "/order/getList/{accountId}": {
+    "/order/account/{accountId}": {
       "get": {
         "tags": [
           "order-controller"
@@ -367,38 +534,7 @@
         }
       }
     },
-    "/order/getDetail/{orderId}": {
-      "get": {
-        "tags": [
-          "order-controller"
-        ],
-        "operationId": "getOrderDetails",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOrderDetailResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/order/AccountIdIsInOrder/{accountId}": {
+    "/order/account/{accountId}/exists": {
       "get": {
         "tags": [
           "order-controller"
@@ -430,138 +566,6 @@
           }
         }
       }
-    },
-    "/account/getList": {
-      "get": {
-        "tags": [
-          "account-controller"
-        ],
-        "operationId": "getAccountList",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GetAccountListResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/account/getDetail/{id}": {
-      "get": {
-        "tags": [
-          "account-controller"
-        ],
-        "operationId": "getAccountDetail",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetAccountDetailResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/product/delete/{id}": {
-      "delete": {
-        "tags": [
-          "product-controller"
-        ],
-        "summary": "刪除商品",
-        "description": "找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除",
-        "operationId": "deleteProduct",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/order/delete/{orderId}": {
-      "delete": {
-        "tags": [
-          "order-controller"
-        ],
-        "summary": "刪除訂單",
-        "description": "訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存",
-        "operationId": "deleteOrder",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/account/delete/{id}": {
-      "delete": {
-        "tags": [
-          "account-controller"
-        ],
-        "summary": "刪除帳戶",
-        "description": "找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除",
-        "operationId": "deleteAccount",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -569,10 +573,6 @@
       "UpdateProductRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
           "name": {
             "type": "string",
             "maxLength": 100,
@@ -592,7 +592,6 @@
         },
         "required": [
           "available",
-          "id",
           "price",
           "saleStatus"
         ]
@@ -641,10 +640,6 @@
       "UpdateAccountRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
           "name": {
             "type": "string",
             "maxLength": 50,
@@ -655,9 +650,27 @@
             "maxLength": 1,
             "minLength": 0
           }
+        }
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "price": {
+            "type": "number"
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          }
         },
         "required": [
-          "id"
+          "available",
+          "price"
         ]
       },
       "OrderItemRequest": {
@@ -691,27 +704,6 @@
             "uniqueItems": true
           }
         }
-      },
-      "CreateProductRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0
-          },
-          "price": {
-            "type": "number"
-          },
-          "available": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "required": [
-          "available",
-          "price"
-        ]
       },
       "CreateOrderDetailRequest": {
         "type": "object",
@@ -801,22 +793,6 @@
           }
         }
       },
-      "GetOrderListResponse": {
-        "type": "object",
-        "properties": {
-          "orderId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalAmount": {
-            "type": "number"
-          }
-        }
-      },
       "GetOrderDetailResponse": {
         "type": "object",
         "properties": {
@@ -854,6 +830,22 @@
             "format": "int32"
           },
           "productPrice": {
+            "type": "number"
+          }
+        }
+      },
+      "GetOrderListResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
             "type": "number"
           }
         }
