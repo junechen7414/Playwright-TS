@@ -4,27 +4,31 @@
  */
 
 export interface paths {
-    "/product/update": {
+    "/product/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getProductDetail"];
         /**
          * 更新商品
          * @description 該ID商品若沒找到拋出NotFound例外，再檢查是否要更改成已經存在的商品名稱拋出特定例外，沒有則更新成功
          */
         put: operations["updateProduct"];
         post?: never;
-        delete?: never;
+        /**
+         * 刪除商品
+         * @description 找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除
+         */
+        delete: operations["deleteProduct"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/order/update": {
+    "/order": {
         parameters: {
             query?: never;
             header?: never;
@@ -37,27 +41,55 @@ export interface paths {
          * @description 不存在該訂單ID拋出NotFound，若商品狀態不可銷售拋出特定例外，再來若有商品庫存不足拋出特定例外，都沒更新商品庫存、訂單
          */
         put: operations["updateOrder"];
-        post?: never;
+        /**
+         * 建立新訂單
+         * @description 帳戶狀態N拋出特定例外，之後若商品狀態不可銷售拋出特定例外，再來若商品庫存不足拋出特定例外，沒例外則更新商品庫存和新增訂單
+         */
+        post: operations["createOrder"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/account/update": {
+    "/account/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getAccountDetail"];
         /**
          * 修改帳戶
          * @description 該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功
          */
         put: operations["updateAccount"];
         post?: never;
+        /**
+         * 刪除帳戶
+         * @description 找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除
+         */
+        delete: operations["deleteAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/product": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getProductList"];
+        put?: never;
+        /**
+         * 新增商品
+         * @description 如果有同名商品拋出特定例外，沒有則新增成功
+         */
+        post: operations["createProduct"];
         delete?: never;
         options?: never;
         head?: never;
@@ -84,54 +116,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/product/create": {
+    "/account": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        /**
-         * 新增商品
-         * @description 如果有同名商品拋出特定例外，沒有則新增成功
-         */
-        post: operations["createProduct"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 建立新訂單
-         * @description 帳戶狀態N拋出特定例外，之後若商品狀態不可銷售拋出特定例外，再來若商品庫存不足拋出特定例外，沒例外則更新商品庫存和新增訂單
-         */
-        post: operations["createOrder"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/account/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
+        get: operations["getAccountList"];
         put?: never;
         post: operations["createAccount"];
         delete?: never;
@@ -140,14 +132,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/product/getList": {
+    "/PlaywrightTestData/createOrderPrecondition": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getProductList"];
+        get?: never;
+        put?: never;
+        post: operations["createOrderPrecondition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/product/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getProductBatch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -156,43 +164,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/product/getDetails": {
+    "/order/{orderId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get: operations["getOrderDetails"];
+        put?: never;
+        post?: never;
         /**
-         * 多個ID取得多筆資料
-         * @description 盡力找沒找到不拋出例外回傳空list，找到則回傳
+         * 刪除訂單
+         * @description 訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存
          */
-        get: operations["getProductDetails"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["deleteOrder"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/product/getDetail/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/getList/{accountId}": {
+    "/order/account/{accountId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -208,23 +200,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/order/getDetail/{orderId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrderDetails"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/AccountIdIsInOrder/{accountId}": {
+    "/order/account/{accountId}/exists": {
         parameters: {
             query?: never;
             header?: never;
@@ -244,105 +220,11 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/account/getList": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAccountList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/account/getDetail/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAccountDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/product/delete/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * 刪除商品
-         * @description 找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除
-         */
-        delete: operations["deleteProduct"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/delete/{orderId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * 刪除訂單
-         * @description 訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存
-         */
-        delete: operations["deleteOrder"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/account/delete/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * 刪除帳戶
-         * @description 找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除
-         */
-        delete: operations["deleteAccount"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         UpdateProductRequest: {
-            /** Format: int32 */
-            id: number;
             name?: string;
             price: number;
             /** Format: int32 */
@@ -364,10 +246,14 @@ export interface components {
             items?: components["schemas"]["UpdateOrderDetailRequest"][];
         };
         UpdateAccountRequest: {
-            /** Format: int32 */
-            id: number;
             name?: string;
             status?: string;
+        };
+        CreateProductRequest: {
+            name?: string;
+            price: number;
+            /** Format: int32 */
+            available: number;
         };
         OrderItemRequest: {
             /** Format: int32 */
@@ -378,12 +264,6 @@ export interface components {
         ProcessOrderItemsRequest: {
             originalItems?: components["schemas"]["OrderItemRequest"][];
             updatedItems?: components["schemas"]["OrderItemRequest"][];
-        };
-        CreateProductRequest: {
-            name?: string;
-            price: number;
-            /** Format: int32 */
-            available: number;
         };
         CreateOrderDetailRequest: {
             /** Format: int32 */
@@ -417,13 +297,6 @@ export interface components {
             /** Format: int32 */
             available?: number;
         };
-        GetOrderListResponse: {
-            /** Format: int32 */
-            orderId?: number;
-            /** Format: int32 */
-            status?: number;
-            totalAmount?: number;
-        };
         GetOrderDetailResponse: {
             /** Format: int32 */
             accountId?: number;
@@ -439,6 +312,13 @@ export interface components {
             /** Format: int32 */
             quantity?: number;
             productPrice?: number;
+        };
+        GetOrderListResponse: {
+            /** Format: int32 */
+            orderId?: number;
+            /** Format: int32 */
+            status?: number;
+            totalAmount?: number;
         };
         GetAccountListResponse: {
             /** Format: int32 */
@@ -459,13 +339,59 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getProductDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GetProductDetailResponse"];
+                };
+            };
+        };
+    };
     updateProduct: {
         parameters: {
-            query: {
-                updateProductRequest: components["schemas"]["UpdateProductRequest"];
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -501,13 +427,83 @@ export interface operations {
             };
         };
     };
-    updateAccount: {
+    createOrder: {
         parameters: {
-            query: {
-                updateAccountRequest: components["schemas"]["UpdateAccountRequest"];
-            };
+            query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": number;
+                };
+            };
+        };
+    };
+    getAccountDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["GetAccountDetailResponse"];
+                };
+            };
+        };
+    };
+    updateAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    deleteAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -521,25 +517,23 @@ export interface operations {
             };
         };
     };
-    processOrderItems: {
+    getProductList: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProcessOrderItemsRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "*/*": components["schemas"]["GetProductListResponse"][];
+                };
             };
         };
     };
@@ -567,7 +561,7 @@ export interface operations {
             };
         };
     };
-    createOrder: {
+    processOrderItems: {
         parameters: {
             query?: never;
             header?: never;
@@ -576,7 +570,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateOrderRequest"];
+                "application/json": components["schemas"]["ProcessOrderItemsRequest"];
             };
         };
         responses: {
@@ -585,8 +579,26 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content?: never;
+            };
+        };
+    };
+    getAccountList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "*/*": number;
+                    "*/*": components["schemas"]["GetAccountListResponse"][];
                 };
             };
         };
@@ -615,9 +627,11 @@ export interface operations {
             };
         };
     };
-    getProductList: {
+    createOrderPrecondition: {
         parameters: {
-            query?: never;
+            query: {
+                count: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -630,12 +644,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["GetProductListResponse"][];
+                    "*/*": string;
                 };
             };
         };
     };
-    getProductDetails: {
+    getProductBatch: {
         parameters: {
             query: {
                 ids: number[];
@@ -652,53 +666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": {
-                        [key: string]: components["schemas"]["GetProductDetailResponse"];
-                    };
-                };
-            };
-        };
-    };
-    getProductDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetProductDetailResponse"];
-                };
-            };
-        };
-    };
-    getOrderList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetOrderListResponse"][];
+                    "*/*": components["schemas"]["GetProductDetailResponse"][];
                 };
             };
         };
@@ -725,90 +693,6 @@ export interface operations {
             };
         };
     };
-    AccountIdIsInOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": boolean;
-                };
-            };
-        };
-    };
-    getAccountList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetAccountListResponse"][];
-                };
-            };
-        };
-    };
-    getAccountDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetAccountDetailResponse"];
-                };
-            };
-        };
-    };
-    deleteProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     deleteOrder: {
         parameters: {
             query?: never;
@@ -829,12 +713,12 @@ export interface operations {
             };
         };
     };
-    deleteAccount: {
+    getOrderList: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                accountId: number;
             };
             cookie?: never;
         };
@@ -845,7 +729,31 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "*/*": components["schemas"]["GetOrderListResponse"][];
+                };
+            };
+        };
+    };
+    AccountIdIsInOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": boolean;
+                };
             };
         };
     };
