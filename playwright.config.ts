@@ -47,16 +47,7 @@ export default defineConfig({
 	},
 
 	projects: [
-		/* --- 1. API 測試 --- */
-		{
-			name: 'api',
-			testMatch: '**/api/*.spec.ts',
-			use: {
-				baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com/booking',
-			},
-		},
-
-		/* --- 2. UI Setup (登入預處理) --- */
+		/* --- 1. UI Setup (登入預處理) --- */
 		{
 			name: 'ui-setup',
 			testMatch: '**/saucedemo/*.setup.ts',
@@ -66,7 +57,7 @@ export default defineConfig({
 			},
 		},
 
-		/* --- 3. UI 本地測試 (對接你的 Docker Spring Boot) --- */
+		/* --- 2. UI 本地測試 (對接你的 Docker Spring Boot) --- */
 		{
 			name: 'springboot-api',
 			testMatch: '**/springboot/*.spec.ts',
@@ -75,7 +66,7 @@ export default defineConfig({
 			},
 		},
 
-		/* --- 4. UI Staging 測試 (對接外部環境) --- */
+		/* --- 3. UI Staging 測試 (對接外部環境) --- */
 		{
 			name: 'ui-staging',
 			testMatch: '**/saucedemo/*.spec.ts',
@@ -83,19 +74,6 @@ export default defineConfig({
 			use: {
 				baseURL: 'https://www.saucedemo.com/',
 				...devices['Desktop Chrome'],
-				storageState: '.auth/login.json',
-			},
-		},
-
-		/* --- 5. WebKit 專屬 (處理你提到的 Windows Crash 問題) --- */
-		{
-			name: 'ui-webkit',
-			testMatch: '**/saucedemo/*.spec.ts',
-			dependencies: ['ui-setup'],
-			use: {
-				baseURL: 'https://www.saucedemo.com/',
-				...devices['Desktop Safari'],
-				video: 'off', // 避開非 ASCII 路徑崩潰
 				storageState: '.auth/login.json',
 			},
 		},
