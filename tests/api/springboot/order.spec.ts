@@ -8,33 +8,25 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		springbootApi,
 		existingAccount,
 		existingProductId,
-		orderFixtureDeletedAfterward,
+		newOrderData,
 	}) => {
-		const response = await springbootApi.createOrder({
-			accountId: existingAccount.id,
-			orderDetails: [{ productId: existingProductId, quantity: 2 }],
-		});
+		const response = await springbootApi.createOrder(
+			newOrderData(existingAccount.id, existingProductId),
+		);
 		const orderId = expectOk(response);
 
 		expect(typeof orderId).toBe('number');
-		orderFixtureDeletedAfterward.ids.push(orderId);
 	});
 
 	test('應該能更新訂單明細數量與狀態', async ({
 		springbootApi,
 		existingOrder,
 		existingProductId,
+		updateOrderData,
 	}) => {
-		const response = await springbootApi.updateOrder({
-			orderId: existingOrder.orderId,
-			orderStatus: 1001,
-			items: [
-				{
-					productId: existingProductId,
-					quantity: 1,
-				},
-			],
-		});
+		const response = await springbootApi.updateOrder(
+			updateOrderData(existingOrder.orderId, existingProductId),
+		);
 		expectOk(response);
 	});
 
