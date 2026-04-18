@@ -9,11 +9,16 @@ type SpringbootDataFixtures = {
 	) => components['schemas']['UpdateAccountRequest'];
 	newProductData: components['schemas']['CreateProductRequest'];
 	updateProductData: (existingProductId: number) => components['schemas']['UpdateProductRequest'];
+	newOrderData: (
+		accountId: number,
+		productId: number,
+	) => components['schemas']['CreateOrderRequest'];
+	updateOrderData: (
+		orderId: number,
+		productId: number,
+	) => components['schemas']['UpdateOrderRequest'];
 };
 
-/**
- * 核心 Fixture 邏輯：提供動態與靜態測試資料
- */
 export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	// 建立新帳號的資料
 	newAccountData: async ({}, use) => {
@@ -45,7 +50,24 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 			name: `Updated_Product_${faker.number.int({ min: 1, max: 100 })}`,
 			price: faker.number.int({ min: 10, max: 1000 }),
 			available: faker.number.int({ min: 1, max: 100 }),
-			saleStatus: 1001, // 假設 1001 代表 "ON_SALE"
+			saleStatus: 1001,
+		}));
+	},
+
+	// 建立新訂單的資料
+	newOrderData: async ({}, use) => {
+		await use((accountId, productId) => ({
+			accountId: accountId,
+			orderDetails: [{ productId: productId, quantity: 1 }],
+		}));
+	},
+
+	// 更新訂單的資料
+	updateOrderData: async ({}, use) => {
+		await use((orderId, productId) => ({
+			orderId: orderId,
+			orderStatus: 1001,
+			items: [{ productId: productId, quantity: 1 }],
 		}));
 	},
 });
