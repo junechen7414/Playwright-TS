@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
+import { expectOk } from '../services/apis/base-api-client';
 import { SpringbootApiClient } from '../services/apis/springboot-api-client';
 
 type CleanupBox = { ids: number[] };
@@ -22,16 +23,9 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 	existingAccount: async ({ springbootApi }, use) => {
 		// 在 fixture 中建立一筆帳號資料，並在測試結束後刪除，確保測試獨立性
 		const accountName = faker.person.fullName();
-		const createResponse = await springbootApi.createAccount({ name: accountName });
+		const response = await springbootApi.createAccount({ name: accountName });
+		const accountId = expectOk(response);
 
-		if (!createResponse.ok()) {
-			throw new Error('Failed to create account for fixture');
-		}
-		const accountId = await createResponse.json();
-
-		if (typeof accountId !== 'number' || Number.isNaN(accountId)) {
-			throw new Error('Invalid accountId received from API');
-		}
 		await use({ id: accountId, name: accountName, status: 'Y' });
 		await springbootApi.deleteAccount(accountId).catch(() => {
 			// 忽略已經被測案刪除的情況
@@ -50,15 +44,13 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 
 	existingProductId: async ({ springbootApi }, use) => {
 		// 在 fixture 中建立一筆商品資料，並在測試結束後刪除，確保測試獨立性
-		const createResponse = await springbootApi.createProduct({
+		const response = await springbootApi.createProduct({
 			name: `Test Product ${faker.string.uuid()}`,
 			price: faker.number.int({ min: 10, max: 100 }),
 			available: 100,
 		});
-		if (!createResponse.ok()) {
-			throw new Error('Failed to create product for fixture');
-		}
-		const productId = await createResponse.json();
+		const productId = expectOk(response);
+
 		await use(productId);
 		await springbootApi.deleteProduct(productId).catch(() => {
 			// 忽略已經被測試刪除的情況
@@ -76,16 +68,14 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 	},
 	existingOrder: async ({ springbootApi, existingAccount, existingProductId }, use) => {
 		// 在 fixture 中建立一筆訂單資料，並在測試結束後刪除，確保測試獨立性
-		const createResponse = await springbootApi.createOrder({
+		const response = await springbootApi.createOrder({
 			accountId: existingAccount.id,
 			orderDetails: [
 				{ productId: existingProductId, quantity: faker.number.int({ min: 1, max: 5 }) },
 			],
 		});
-		if (!createResponse.ok()) {
-			throw new Error('Failed to create order for fixture');
-		}
-		const orderId = await createResponse.json();
+		const orderId = expectOk(response);
+
 		await use({ orderId: orderId, accountId: existingAccount.id, productId: existingProductId });
 		await springbootApi.deleteOrder(orderId).catch(() => {
 			// 忽略已經被測試刪除的情況
@@ -105,14 +95,13 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		{ springbootApi, existingOrder, existingProductId },
 		use,
 	) => {
-		springbootApi
-			.createOrder({
-				accountId: existingOrder.accountId,
-				orderDetails: [{ productId: existingProductId, quantity: 1 }],
-			})
-			.catch(() => {
-				/*靜默處理*/
-			});
+		// 額外建立一張訂單，確保有多筆資料
+		const response = await springbootApi.createOrder({
+			accountId: existingOrder.accountId,
+			orderDetails: [{ productId: existingProductId, quantity: 1 }],
+		});
+		expectOk(response);
+
 		await use(existingOrder.accountId);
 	},
 });
