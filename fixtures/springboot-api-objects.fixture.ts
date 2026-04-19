@@ -92,16 +92,28 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		}
 	},
 	existingMultipleOrdersAccountId: async (
-		{ springbootApi, existingOrder, existingProductId },
+		{ springbootApi, existingAccount, existingProductId },
 		use,
 	) => {
-		// 額外建立一張訂單，確保有多筆資料
-		const response = await springbootApi.createOrder({
-			accountId: existingOrder.accountId,
+		// 建立多張訂單，確保有多筆資料
+		const orderResponse1 = await springbootApi.createOrder({
+			accountId: existingAccount.id,
 			orderDetails: [{ productId: existingProductId, quantity: 1 }],
 		});
-		expectOk(response);
+		expectOk(orderResponse1);
 
-		await use(existingOrder.accountId);
+		const orderResponse2 = await springbootApi.createOrder({
+			accountId: existingAccount.id,
+			orderDetails: [{ productId: existingProductId, quantity: 1 }],
+		});
+		expectOk(orderResponse2);
+
+		await use(existingAccount.id);
+		await springbootApi.deleteOrder(orderResponse1.data).catch(() => {
+			/* 靜默處理，防止清理失敗影響測試結果 */
+		});
+		await springbootApi.deleteOrder(orderResponse2.data).catch(() => {
+			/* 靜默處理，防止清理失敗影響測試結果 */
+		});
 	},
 });
