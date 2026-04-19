@@ -27,7 +27,10 @@ test.describe('Account 帳號管理', () => {
 	});
 
 	test('應該能更新帳號', async ({ springbootApi, existingAccount, updateAccountData }) => {
-		const response = await springbootApi.updateAccount(updateAccountData(existingAccount));
+		const response = await springbootApi.updateAccount(
+			existingAccount.id,
+			updateAccountData(existingAccount),
+		);
 		expectOk(response);
 	});
 

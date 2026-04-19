@@ -28,8 +28,7 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	},
 	// 更新帳號的資料
 	updateAccountData: async ({}, use) => {
-		await use((existingAccount) => ({
-			id: existingAccount.id,
+		await use(() => ({
 			name: faker.person.fullName(),
 			status: 'Y',
 		}));

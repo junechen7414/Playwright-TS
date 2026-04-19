@@ -21,7 +21,10 @@ test.describe('Product 商品管理', () => {
 		existingProductId,
 		updateProductData,
 	}) => {
-		const response = await springbootApi.updateProduct(updateProductData(existingProductId));
+		const response = await springbootApi.updateProduct(
+			existingProductId,
+			updateProductData(existingProductId),
+		);
 		expectOk(response);
 	});
 
