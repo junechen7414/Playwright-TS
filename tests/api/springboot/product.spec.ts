@@ -4,16 +4,11 @@ import { test } from '../../../fixtures/springboot-chained.fixture';
 import { expectError, expectOk } from '../../../services/apis/base-api-client';
 
 test.describe('Product 商品管理', () => {
-	test('應該能建立新商品', async ({
-		springbootApi,
-		productFixtureDeletedAfterward,
-		newProductData,
-	}) => {
+	test('應該能建立新商品', async ({ springbootApi, newProductData }) => {
 		const response = await springbootApi.createProduct(newProductData);
 		const productId = expectOk(response);
 
 		expect(typeof productId).toBe('number');
-		productFixtureDeletedAfterward.ids.push(productId);
 	});
 
 	test('應該能更新商品價格與庫存', async ({
