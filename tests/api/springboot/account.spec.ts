@@ -4,16 +4,11 @@ import { test } from '../../../fixtures/springboot-chained.fixture';
 import { expectError, expectOk } from '../../../services/apis/base-api-client';
 
 test.describe('Account 帳號管理', () => {
-	test('應該能建立新帳號', async ({
-		springbootApi,
-		accountFixtureDeletedAfterward,
-		newAccountData,
-	}) => {
+	test('應該能建立新帳號', async ({ springbootApi, newAccountData }) => {
 		const response = await springbootApi.createAccount(newAccountData);
 		const accountId = expectOk(response);
 
 		expect(typeof accountId).toBe('number');
-		accountFixtureDeletedAfterward.ids.push(accountId);
 	});
 
 	test('應該能取得帳號詳情', async ({ springbootApi, existingAccount }) => {
