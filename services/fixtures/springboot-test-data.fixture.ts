@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import type { components } from '../services/schema/api-types';
+import type { components } from '../schema/api-types';
 
 type SpringbootDataFixtures = {
 	newAccountData: components['schemas']['CreateAccountRequest'];

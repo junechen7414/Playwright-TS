@@ -1,4 +1,4 @@
-import { test } from '../../../fixtures/chain-fixtures.fixture';
+import { test } from '../../../services/fixtures/chain-fixtures.fixture';
 
 test.describe('Shopping Scenarios', () => {
 	test('完整流程從購物到結帳', async ({

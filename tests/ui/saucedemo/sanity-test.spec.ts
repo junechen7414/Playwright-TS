@@ -1,4 +1,4 @@
-import { expect, test } from '../../../fixtures/chain-fixtures.fixture';
+import { expect, test } from '../../../services/fixtures/chain-fixtures.fixture';
 
 test('has title', async ({ page }) => {
 	await page.goto('');

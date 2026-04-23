@@ -1,7 +1,7 @@
 // tests/api/springboot/order.spec.ts
 import { expect } from '@playwright/test';
-import { test } from '../../../fixtures/springboot-chained.fixture';
 import { expectError, expectOk } from '../../../services/apis/base-api-client';
+import { test } from '../../../services/fixtures/springboot-chained.fixture';
 
 test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('應該能建立新訂單', async ({
