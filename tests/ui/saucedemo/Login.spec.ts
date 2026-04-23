@@ -1,4 +1,4 @@
-import { test } from '../../../fixtures/chain-fixtures.fixture';
+import { test } from '../../../services/fixtures/chain-fixtures.fixture';
 
 test.describe
 	.skip('Unsuccessful Login Scenarios', () => {
