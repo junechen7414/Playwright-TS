@@ -19,6 +19,7 @@
 		"declarationMap": true,
 
 		/* 針對 Node 22 的優化 (通常繼承已有，但可顯式標註) */
+		"types": ["node"],
 		"module": "esnext",
 		"moduleResolution": "bundler"
 	},
