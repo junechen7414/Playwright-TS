@@ -1,46 +1,27 @@
 {
-	// Visit https://aka.ms/tsconfig to read more about this file
+	"extends": "@tsconfig/node22/tsconfig.json",
 	"compilerOptions": {
-		// File Layout
-		// "rootDir": "./src",
-		// "outDir": "./dist",
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		// Environment Settings
-		// See also https://aka.ms/tsconfig/module
-		"module": "esnext",
-		"moduleResolution": "bundler",
-		"target": "esnext",
-		// For nodejs:
-		// "lib": ["esnext"],
-		"types": ["node"],
-		// and npm install -D @types/node
-		// Other Outputs
+		"paths": {
+			"@/*": ["./*"],
+			"@tests/*": ["./tests/*"],
+			"@fixtures/*": ["./fixtures/*"],
+			"@pages/*": ["./services/pages/*"]
+		},
+		/* 進階檢查 */
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedSideEffectImports": true,
+		"verbatimModuleSyntax": true,
+
+		/* 輸出相關設定 */
 		"sourceMap": true,
 		"declaration": true,
 		"declarationMap": true,
-		// Stricter Typechecking Options
-		"noUncheckedIndexedAccess": true,
-		"exactOptionalPropertyTypes": true,
-		// Style Options
-		"noImplicitReturns": true,
-		"noImplicitOverride": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		// "noPropertyAccessFromIndexSignature": true,
-		// Recommended Options
-		"strict": true,
-		// "jsx": "react-jsx",
-		"verbatimModuleSyntax": true,
-		"isolatedModules": true,
-		"noUncheckedSideEffectImports": true,
-		"moduleDetection": "force",
-		"skipLibCheck": true
+
+		/* 針對 Node 22 的優化 (通常繼承已有，但可顯式標註) */
+		"module": "esnext",
+		"moduleResolution": "bundler"
 	},
-	"include": [
-		"tests/**/*.ts", // 雙星號**表示零層或是多層目錄
-		"playwright.config.ts"
-	],
+	"include": ["tests/**/*.ts", "services/**/*.ts", "playwright.config.ts"],
 	"exclude": ["node_modules", ".github", ".gitignore"]
 }
