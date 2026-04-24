@@ -74,7 +74,6 @@ export default defineConfig({
 			use: {
 				baseURL: 'https://www.saucedemo.com/',
 				...devices['Desktop Chrome'],
-				storageState: '.auth/login.json',
 			},
 		},
 	],
