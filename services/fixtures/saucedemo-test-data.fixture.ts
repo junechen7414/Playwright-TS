@@ -17,7 +17,8 @@ type Product = string;
 // Fixture 類型定義
 type SauceDataFixtures = {
 	standardUserData: UserCredential;
-	lockedUserData: UserCredential;
+	lockedOutUserData: UserCredential;
+	problemUserData: UserCredential;
 	invalidUserData: UserCredential;
 	loginErrorData: ErrorDatas;
 	productsToAdd: Product[];
@@ -32,6 +33,7 @@ const SAUCE_DATA = {
 	credentials: {
 		standard: { username: 'standard_user', password: 'secret_sauce' },
 		lockedOut: { username: 'locked_out_user', password: 'secret_sauce' },
+		problem: { username: 'problem_user', password: 'secret_sauce' },
 		invalid: { username: 'invalid_user', password: 'invalid_password' },
 	},
 	loginErrorData: {
@@ -54,12 +56,16 @@ export const sauceTest = baseTest.extend<SauceDataFixtures>({
 		await use(SAUCE_DATA.credentials.standard);
 	},
 
-	lockedUserData: async ({}, use) => {
+	lockedOutUserData: async ({}, use) => {
 		await use(SAUCE_DATA.credentials.lockedOut);
 	},
 
 	invalidUserData: async ({}, use) => {
 		await use(SAUCE_DATA.credentials.invalid);
+	},
+
+	problemUserData: async ({}, use) => {
+		await use(SAUCE_DATA.credentials.problem);
 	},
 
 	loginErrorData: async ({}, use) => {

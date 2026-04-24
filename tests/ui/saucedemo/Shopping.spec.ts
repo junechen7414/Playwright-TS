@@ -1,13 +1,8 @@
 import { test } from '../../../services/fixtures/chain-fixtures.fixture';
 
 test.describe('Shopping Scenarios', () => {
-	test('完整流程從購物到結帳', async ({
-		productPage,
-		cartPage,
-		checkoutPage,
-		productsToAdd,
-		checkoutPersonData,
-	}) => {
+	test('完整流程從購物到結帳', async ({ standardUserPage, productsToAdd, checkoutPersonData }) => {
+		const { productPage, cartPage, checkoutPage } = standardUserPage;
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 		// 流程3: 進入購物車頁面
@@ -27,7 +22,8 @@ test.describe('Shopping Scenarios', () => {
 		// 驗證點1: 確認訂單完成頁面顯示
 		await checkoutPage.verifyOrderCompletion();
 	});
-	test('重設應用程式狀態後購物車清空', async ({ productPage, hamburgerMenu, productsToAdd }) => {
+	test('重設應用程式狀態後購物車清空', async ({ standardUserPage, productsToAdd }) => {
+		const { productPage, hamburgerMenu } = standardUserPage;
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
@@ -39,12 +35,11 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.verifyCartIconNotVisible();
 	});
 	test('結帳資訊未輸入要提示錯誤訊息', async ({
-		productPage,
-		cartPage,
-		checkoutPage,
+		standardUserPage,
 		checkoutPersonData,
 		productToView,
 	}) => {
+		const { productPage, cartPage, checkoutPage } = standardUserPage;
 		// 前置步驟: 將一個商品加入購物車
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
