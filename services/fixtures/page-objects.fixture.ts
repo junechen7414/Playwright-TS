@@ -5,7 +5,7 @@ import { CheckoutPage } from '../pages/checkout-page';
 import { LoginPage } from '../pages/login-page';
 import { ProductPage } from '../pages/product-page';
 
-type PageObject = {
+export type PageObject = {
 	loginPage: LoginPage;
 	productPage: ProductPage;
 	cartPage: CartPage;
@@ -13,7 +13,36 @@ type PageObject = {
 	hamburgerMenu: HamburgerMenu;
 };
 
-export const pageObjectTest = baseTest.extend<PageObject>({
+type Roles = {
+	standardUserPage: PageObject;
+	problemUserPage: PageObject;
+};
+
+export const pageObjectTest = baseTest.extend<PageObject & Roles>({
+	standardUserPage: async ({ browser }, use) => {
+		const context = await browser.newContext({ storageState: '.auth/standard_user.json' });
+		const page = await context.newPage();
+		await use({
+			loginPage: new LoginPage(page),
+			productPage: new ProductPage(page),
+			cartPage: new CartPage(page),
+			checkoutPage: new CheckoutPage(page),
+			hamburgerMenu: new HamburgerMenu(page),
+		});
+		await context.close();
+	},
+	problemUserPage: async ({ browser }, use) => {
+		const context = await browser.newContext({ storageState: '.auth/problem_user.json' });
+		const page = await context.newPage();
+		await use({
+			loginPage: new LoginPage(page),
+			productPage: new ProductPage(page),
+			cartPage: new CartPage(page),
+			checkoutPage: new CheckoutPage(page),
+			hamburgerMenu: new HamburgerMenu(page),
+		});
+		await context.close();
+	},
 	loginPage: async ({ page }, use) => {
 		const loginPage = new LoginPage(page);
 		await loginPage.goto();
