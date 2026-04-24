@@ -3,6 +3,7 @@ import { test } from '../../../services/fixtures/chain-fixtures.fixture';
 test.describe('Shopping Scenarios', () => {
 	test('完整流程從購物到結帳', async ({ standardUserPage, productsToAdd, checkoutPersonData }) => {
 		const { productPage, cartPage, checkoutPage } = standardUserPage;
+		await productPage.gotoProductPage();
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 		// 流程3: 進入購物車頁面
@@ -24,6 +25,7 @@ test.describe('Shopping Scenarios', () => {
 	});
 	test('重設應用程式狀態後購物車清空', async ({ standardUserPage, productsToAdd }) => {
 		const { productPage, hamburgerMenu } = standardUserPage;
+		await productPage.gotoProductPage();
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
@@ -41,6 +43,7 @@ test.describe('Shopping Scenarios', () => {
 	}) => {
 		const { productPage, cartPage, checkoutPage } = standardUserPage;
 		// 前置步驟: 將一個商品加入購物車
+		await productPage.gotoProductPage();
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
@@ -71,14 +74,13 @@ test.describe('Shopping Scenarios', () => {
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
 	});
-	test.skip('登入登出後購物車狀態持久性', async ({
-		loginPage,
-		standardUserData,
-		productPage,
-		hamburgerMenu,
-		cartPage,
+	test('登入登出後購物車狀態持久性', async ({
+		standardUserPage,
 		productsToAdd,
+		standardUserData,
 	}) => {
+		const { productPage, hamburgerMenu, cartPage, loginPage } = standardUserPage;
+		await productPage.gotoProductPage();
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
