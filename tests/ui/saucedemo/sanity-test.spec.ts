@@ -1,32 +1,28 @@
 import { expect, test } from '../../../services/fixtures/chain-fixtures.fixture';
 
-test('has title', async ({ standardUserPage }) => {
-	await standardUserPage.productPage.gotoProductPage();
-	await expect(standardUserPage.productPage.page).toHaveTitle(/Swag Labs/);
+test('has title', async ({ standardUserProductPage }) => {
+	await expect(standardUserProductPage.productPage.page).toHaveTitle(/Swag Labs/);
 });
 
 test.describe('各頁面導航流程', () => {
-	test('產品頁與單一商品頁面導航', async ({ standardUserPage, productToView }) => {
-		const { productPage } = standardUserPage;
-		await productPage.gotoProductPage();
+	test('產品頁與單一商品頁面導航', async ({ standardUserProductPage, productToView }) => {
+		const { productPage } = standardUserProductPage;
 		await productPage.viewProductDetails(productToView);
 		await productPage.verifyOnProductDetailPage();
 		await productPage.returnToProductList();
 		await productPage.verifyOnProductListPage();
 	});
 
-	test('產品頁與購物車頁面導航', async ({ standardUserPage }) => {
-		const { productPage, cartPage } = standardUserPage;
-		await productPage.gotoProductPage();
+	test('產品頁與購物車頁面導航', async ({ standardUserProductPage }) => {
+		const { productPage, cartPage } = standardUserProductPage;
 		await productPage.goToCartPage();
 		await cartPage.verifyOnCartPage();
 		await cartPage.continueShopping();
 		await productPage.verifyOnProductListPage();
 	});
 
-	test('取消結帳流程', async ({ standardUserPage, checkoutPersonData, productToView }) => {
-		const { productPage, cartPage, checkoutPage } = standardUserPage;
-		await productPage.gotoProductPage();
+	test('取消結帳流程', async ({ standardUserProductPage, checkoutPersonData, productToView }) => {
+		const { productPage, cartPage, checkoutPage } = standardUserProductPage;
 		// 前置步驟: 將一個商品加入購物車
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
@@ -53,17 +49,13 @@ test.describe('各頁面導航流程', () => {
 });
 
 test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
-	test.beforeEach(async ({ standardUserPage }) => {
-		await standardUserPage.productPage.gotoProductPage();
+	test('從商品頁導航到 About 頁面', async ({ standardUserProductPage }) => {
+		await standardUserProductPage.hamburgerMenu.goToAboutPage();
+		await standardUserProductPage.hamburgerMenu.verifyOnAboutPage();
 	});
 
-	test('從商品頁導航到 About 頁面', async ({ standardUserPage }) => {
-		await standardUserPage.hamburgerMenu.goToAboutPage();
-		await standardUserPage.hamburgerMenu.verifyOnAboutPage();
-	});
-
-	test('從購物車頁導航到 About 頁面', async ({ standardUserPage }) => {
-		const { productPage, cartPage, hamburgerMenu } = standardUserPage;
+	test('從購物車頁導航到 About 頁面', async ({ standardUserProductPage }) => {
+		const { productPage, cartPage, hamburgerMenu } = standardUserProductPage;
 		await productPage.goToCartPage();
 		await cartPage.verifyOnCartPage();
 		await hamburgerMenu.goToAboutPage();
@@ -71,11 +63,11 @@ test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
 	});
 
 	test('從結帳資訊頁導航到 About 頁面', async ({
-		standardUserPage,
+		standardUserProductPage,
 		productToView,
 		checkoutPersonData,
 	}) => {
-		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserPage;
+		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
@@ -90,11 +82,11 @@ test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
 	});
 
 	test('從結帳完成頁導航到 About 頁面', async ({
-		standardUserPage,
+		standardUserProductPage,
 		productToView,
 		checkoutPersonData,
 	}) => {
-		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserPage;
+		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
@@ -112,25 +104,26 @@ test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
 });
 
 test.describe('漢堡選單從各頁面登出', () => {
-	test.beforeEach(async ({ standardUserPage }) => {
-		await standardUserPage.productPage.gotoProductPage();
+	test('從商品頁登出', async ({ standardUserProductPage }) => {
+		await standardUserProductPage.hamburgerMenu.logout();
+		await standardUserProductPage.loginPage.verifyOnLoginPage();
 	});
 
-	test('從商品頁登出', async ({ standardUserPage }) => {
-		await standardUserPage.hamburgerMenu.logout();
-		await standardUserPage.loginPage.verifyOnLoginPage();
-	});
-
-	test('從購物車頁登出', async ({ standardUserPage }) => {
-		const { productPage, cartPage, hamburgerMenu, loginPage } = standardUserPage;
+	test('從購物車頁登出', async ({ standardUserProductPage }) => {
+		const { productPage, cartPage, hamburgerMenu, loginPage } = standardUserProductPage;
 		await productPage.goToCartPage();
 		await cartPage.verifyOnCartPage();
 		await hamburgerMenu.logout();
 		await loginPage.verifyOnLoginPage();
 	});
 
-	test('從結帳資訊頁登出', async ({ standardUserPage, productToView, checkoutPersonData }) => {
-		const { productPage, cartPage, checkoutPage, hamburgerMenu, loginPage } = standardUserPage;
+	test('從結帳資訊頁登出', async ({
+		standardUserProductPage,
+		productToView,
+		checkoutPersonData,
+	}) => {
+		const { productPage, cartPage, checkoutPage, hamburgerMenu, loginPage } =
+			standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
@@ -144,8 +137,13 @@ test.describe('漢堡選單從各頁面登出', () => {
 		await loginPage.verifyOnLoginPage();
 	});
 
-	test('從結帳完成頁登出', async ({ standardUserPage, productToView, checkoutPersonData }) => {
-		const { productPage, cartPage, checkoutPage, hamburgerMenu, loginPage } = standardUserPage;
+	test('從結帳完成頁登出', async ({
+		standardUserProductPage,
+		productToView,
+		checkoutPersonData,
+	}) => {
+		const { productPage, cartPage, checkoutPage, hamburgerMenu, loginPage } =
+			standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();

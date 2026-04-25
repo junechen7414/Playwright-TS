@@ -1,9 +1,12 @@
 import { test } from '../../../services/fixtures/chain-fixtures.fixture';
 
 test.describe('Shopping Scenarios', () => {
-	test('完整流程從購物到結帳', async ({ standardUserPage, productsToAdd, checkoutPersonData }) => {
-		const { productPage, cartPage, checkoutPage } = standardUserPage;
-		await productPage.gotoProductPage();
+	test('完整流程從購物到結帳', async ({
+		standardUserProductPage,
+		productsToAdd,
+		checkoutPersonData,
+	}) => {
+		const { productPage, cartPage, checkoutPage } = standardUserProductPage;
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 		// 流程3: 進入購物車頁面
@@ -23,9 +26,8 @@ test.describe('Shopping Scenarios', () => {
 		// 驗證點1: 確認訂單完成頁面顯示
 		await checkoutPage.verifyOrderCompletion();
 	});
-	test('重設應用程式狀態後購物車清空', async ({ standardUserPage, productsToAdd }) => {
-		const { productPage, hamburgerMenu } = standardUserPage;
-		await productPage.gotoProductPage();
+	test('重設應用程式狀態後購物車清空', async ({ standardUserProductPage, productsToAdd }) => {
+		const { productPage, hamburgerMenu } = standardUserProductPage;
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 
@@ -37,13 +39,12 @@ test.describe('Shopping Scenarios', () => {
 		await productPage.verifyCartIconNotVisible();
 	});
 	test('結帳資訊未輸入要提示錯誤訊息', async ({
-		standardUserPage,
+		standardUserProductPage,
 		checkoutPersonData,
 		productToView,
 	}) => {
-		const { productPage, cartPage, checkoutPage } = standardUserPage;
+		const { productPage, cartPage, checkoutPage } = standardUserProductPage;
 		// 前置步驟: 將一個商品加入購物車
-		await productPage.gotoProductPage();
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
 		await cartPage.goToCheckoutPage();
@@ -75,12 +76,11 @@ test.describe('Shopping Scenarios', () => {
 		await checkoutPage.verifyErrorMessageShows();
 	});
 	test('登入登出後購物車狀態持久性', async ({
-		standardUserPage,
+		standardUserProductPage,
 		productsToAdd,
 		standardUserData,
 	}) => {
-		const { productPage, hamburgerMenu, cartPage, loginPage } = standardUserPage;
-		await productPage.gotoProductPage();
+		const { productPage, hamburgerMenu, cartPage, loginPage } = standardUserProductPage;
 		// 流程2：加入指定商品到購物車
 		await productPage.addMultipleProductsToCart(productsToAdd);
 

@@ -14,11 +14,16 @@ export type PageObject = {
 };
 
 type Roles = {
+	standardUserProductPage: PageObject;
 	standardUserPage: PageObject;
 	problemUserPage: PageObject;
 };
 
 export const pageObjectTest = baseTest.extend<PageObject & Roles>({
+	standardUserProductPage: async ({ standardUserPage }, use) => {
+		await standardUserPage.productPage.gotoProductPage();
+		await use(standardUserPage);
+	},
 	standardUserPage: async ({ browser }, use) => {
 		const context = await browser.newContext({ storageState: '.auth/standard_user.json' });
 		const page = await context.newPage();
