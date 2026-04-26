@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
 import { expectOk } from '../apis/base-api-client';
 import { SpringbootApiClient } from '../apis/springboot-api-client';
+import { AccountStatus } from '../schema/constants';
 
 type SpringbootApiFixtures = {
 	springbootApi: SpringbootApiClient;
@@ -22,7 +23,7 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		const response = await springbootApi.createAccount({ name: accountName });
 		const accountId = expectOk(response);
 
-		await use({ id: accountId, name: accountName, status: 'Y' });
+		await use({ id: accountId, name: accountName, status: AccountStatus.Active });
 	},
 
 	existingProductId: async ({ springbootApi }, use) => {

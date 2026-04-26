@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
 import type { components } from '../schema/api-types';
+import { AccountStatus, OrderStatus, ProductSaleStatus } from '../schema/constants';
 
 type SpringbootDataFixtures = {
 	newAccountData: components['schemas']['CreateAccountRequest'];
@@ -30,7 +31,7 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	updateAccountData: async ({}, use) => {
 		await use(() => ({
 			name: faker.person.fullName(),
-			status: 'Y',
+			status: AccountStatus.Active,
 		}));
 	},
 
@@ -49,7 +50,7 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 			name: `Updated_Product_${faker.number.int({ min: 1, max: 100 })}`,
 			price: faker.number.int({ min: 10, max: 1000 }),
 			available: faker.number.int({ min: 1, max: 100 }),
-			saleStatus: 1001,
+			saleStatus: ProductSaleStatus.Available,
 		}));
 	},
 
@@ -65,7 +66,7 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	updateOrderData: async ({}, use) => {
 		await use((orderId, productId) => ({
 			orderId: orderId,
-			orderStatus: 1001,
+			orderStatus: OrderStatus.Pending,
 			items: [{ productId: productId, quantity: 1 }],
 		}));
 	},
