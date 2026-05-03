@@ -36,4 +36,15 @@ test.describe('Account 帳號管理', () => {
 		const getResponse = await springbootApi.getAccount(existingAccount.id);
 		expectError(getResponse, 404);
 	});
+
+	test('當帳號有關聯訂單時，不應該能刪除帳號', async ({ springbootApi, existingOrder }) => {
+		const response = await springbootApi.deleteAccount(existingOrder.accountId);
+		const errorBody = expectError(response, 400);
+
+		expect(errorBody).toMatchObject({
+			status: 400,
+			error: '帳戶仍有訂單，無法刪除',
+		});
+		expect(errorBody.message).toContain(`Account with id: ${existingOrder.accountId}`);
+	});
 });
