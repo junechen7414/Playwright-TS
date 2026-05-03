@@ -2,6 +2,7 @@
 import { expect } from '@playwright/test';
 import { expectError, expectOk } from '../../../services/apis/base-api-client';
 import { test } from '../../../services/fixtures/springboot-chained.fixture';
+import { AccountStatus, ProductSaleStatus } from '../../../services/schema/constants';
 
 test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('應該能建立新訂單', async ({
@@ -16,6 +17,46 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		const orderId = expectOk(response);
 
 		expect(typeof orderId).toBe('number');
+	});
+
+	test('當帳戶狀態為無效時，無法建立新訂單', async ({
+		springbootApi,
+		existingAccount,
+		existingProductId,
+		newOrderData,
+	}) => {
+		// 將帳戶狀態設為無效
+		await springbootApi.updateAccount(existingAccount.id, {
+			status: AccountStatus.Inactive,
+		});
+
+		const response = await springbootApi.createOrder(
+			newOrderData(existingAccount.id, existingProductId),
+		);
+
+		const errorBody = expectError(response, 404);
+		expect(errorBody.message).toBe(`Account not found with id: ${existingAccount.id}`);
+	});
+
+	test('當商品狀態為無效時，無法建立新訂單', async ({
+		springbootApi,
+		existingAccount,
+		existingProductId,
+		newOrderData,
+	}) => {
+		// 將商品狀態設為無效
+		await springbootApi.updateProduct(existingProductId, {
+			price: 100,
+			saleStatus: ProductSaleStatus.Inactive,
+			available: 10,
+		});
+
+		const response = await springbootApi.createOrder(
+			newOrderData(existingAccount.id, existingProductId),
+		);
+
+		const errorBody = expectError(response, 404);
+		expect(errorBody.message).toBe(`Products not found with IDs: ${existingProductId}`);
 	});
 
 	test('應該能更新訂單明細數量與狀態', async ({
