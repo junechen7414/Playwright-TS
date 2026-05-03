@@ -24,11 +24,14 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		existingAccount,
 		existingProductId,
 		newOrderData,
+		updateAccountData,
 	}) => {
 		// 將帳戶狀態設為無效
-		await springbootApi.updateAccount(existingAccount.id, {
+		const updateResponse = await springbootApi.updateAccount(existingAccount.id, {
+			...updateAccountData(existingAccount),
 			status: AccountStatus.Inactive,
 		});
+		expectOk(updateResponse);
 
 		const response = await springbootApi.createOrder(
 			newOrderData(existingAccount.id, existingProductId),
@@ -43,13 +46,14 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		existingAccount,
 		existingProductId,
 		newOrderData,
+		updateProductData,
 	}) => {
 		// 將商品狀態設為無效
-		await springbootApi.updateProduct(existingProductId, {
-			price: 100,
+		const updateResponse = await springbootApi.updateProduct(existingProductId, {
+			...updateProductData(existingProductId),
 			saleStatus: ProductSaleStatus.Inactive,
-			available: 10,
 		});
+		expectOk(updateResponse);
 
 		const response = await springbootApi.createOrder(
 			newOrderData(existingAccount.id, existingProductId),
