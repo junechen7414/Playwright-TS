@@ -89,4 +89,23 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		const getResponse = await springbootApi.getOrder(existingOrder.orderId);
 		expectError(getResponse, 404);
 	});
+
+	test('當商品庫存不足時，無法建立新訂單', async ({
+		springbootApi,
+		existingAccount,
+		existingProductId,
+	}) => {
+		// 取得現有商品的庫存量
+		const product = await springbootApi.getProduct(existingProductId);
+		const availableQuantity = expectOk(product).available ?? 0;
+
+		// 嘗試建立一個訂單數量大於庫存的訂單
+		const response = await springbootApi.createOrder({
+			accountId: existingAccount.id,
+			orderDetails: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
+		});
+
+		const errorBody = expectError(response, 400);
+		expect(errorBody.message).toBe(`商品 ID ${existingProductId} 庫存不足，無法預留`);
+	});
 });
