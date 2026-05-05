@@ -16,6 +16,8 @@
         "tags": [
           "product-controller"
         ],
+        "summary": "獲取單一商品詳細資訊",
+        "description": "根據 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將回傳 NotFound。",
         "operationId": "getProductDetail",
         "parameters": [
           {
@@ -46,7 +48,7 @@
           "product-controller"
         ],
         "summary": "更新商品",
-        "description": "該ID商品若沒找到拋出NotFound例外，再檢查是否要更改成已經存在的商品名稱拋出特定例外，沒有則更新成功",
+        "description": "更新現有商品資訊。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 ProductAlreadyExistException。",
         "operationId": "updateProduct",
         "parameters": [
           {
@@ -80,7 +82,7 @@
           "product-controller"
         ],
         "summary": "刪除商品",
-        "description": "找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除",
+        "description": "執行商品軟刪除。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。",
         "operationId": "deleteProduct",
         "parameters": [
           {
@@ -106,7 +108,7 @@
           "order-controller"
         ],
         "summary": "更新訂單內容",
-        "description": "不存在該訂單ID拋出NotFound，若商品狀態不可銷售拋出特定例外，再來若有商品庫存不足拋出特定例外，都沒更新商品庫存、訂單",
+        "description": "更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 InvalidRequestException），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單狀態與明細。",
         "operationId": "updateOrder",
         "requestBody": {
           "content": {
@@ -129,7 +131,7 @@
           "order-controller"
         ],
         "summary": "建立新訂單",
-        "description": "帳戶狀態N拋出特定例外，之後若商品狀態不可銷售拋出特定例外，再來若商品庫存不足拋出特定例外，沒例外則更新商品庫存和新增訂單",
+        "description": "建立新訂單。先驗證帳戶是否啟用（不啟用則拋出 AccountInactiveException），檢查訂單內是否有重複商品（重複則拋出 InvalidRequestException），最後透過商品服務處理庫存（若狀態不可銷售或庫存不足由商品服務拋出異常）。成功則新增訂單主檔（預設狀態 1001）與明細。",
         "operationId": "createOrder",
         "requestBody": {
           "content": {
@@ -161,6 +163,8 @@
         "tags": [
           "account-controller"
         ],
+        "summary": "獲取帳戶詳細資訊",
+        "description": "根據 ID 獲取帳戶詳細資訊。受限於 SQLRestriction 規則，若帳戶不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。",
         "operationId": "getAccountDetail",
         "parameters": [
           {
@@ -190,8 +194,8 @@
         "tags": [
           "account-controller"
         ],
-        "summary": "修改帳戶",
-        "description": "該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功",
+        "summary": "更新帳戶",
+        "description": "更新現有帳戶資訊。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若欲將狀態從啟用 \u0027Y\u0027 變更為停用 \u0027N\u0027，會先檢查該帳戶是否仍有關聯訂單，若有則拋出 AccountStillHasOrderCanNotBeDeleteException。",
         "operationId": "updateAccount",
         "parameters": [
           {
@@ -225,7 +229,7 @@
           "account-controller"
         ],
         "summary": "刪除帳戶",
-        "description": "找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除",
+        "description": "執行帳戶軟刪除。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若該帳戶仍有關聯訂單，則拋出 AccountStillHasOrderCanNotBeDeleteException。",
         "operationId": "deleteAccount",
         "parameters": [
           {
@@ -250,6 +254,8 @@
         "tags": [
           "product-controller"
         ],
+        "summary": "獲取商品列表",
+        "description": "獲取所有商品的列表。受限於 SQLRestriction 規則，僅會回傳未被軟刪除且銷售狀態為 1001 (AVAILABLE) 的商品。",
         "operationId": "getProductList",
         "responses": {
           "200": {
@@ -272,7 +278,7 @@
           "product-controller"
         ],
         "summary": "新增商品",
-        "description": "如果有同名商品拋出特定例外，沒有則新增成功",
+        "description": "建立新商品。若已存在同名商品則拋出 ProductAlreadyExistException。成功則新增商品資料，預設銷售狀態為 1001 (AVAILABLE)。",
         "operationId": "createProduct",
         "requestBody": {
           "content": {
@@ -329,6 +335,8 @@
         "tags": [
           "account-controller"
         ],
+        "summary": "獲取帳戶列表",
+        "description": "獲取所有帳戶的列表。受限於 SQLRestriction 規則，僅會回傳未軟刪除且狀態為啟用 \u0027Y\u0027 的帳戶。",
         "operationId": "getAccountList",
         "responses": {
           "200": {
@@ -350,6 +358,8 @@
         "tags": [
           "account-controller"
         ],
+        "summary": "建立新帳戶",
+        "description": "建立新帳戶。成功則新增帳戶資料，預設狀態為啟用 \u0027Y\u0027。",
         "operationId": "createAccount",
         "requestBody": {
           "content": {
@@ -412,6 +422,8 @@
         "tags": [
           "product-controller"
         ],
+        "summary": "批量獲取商品詳細資訊",
+        "description": "根據多個 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，該 ID 將被忽略。",
         "operationId": "getProductBatch",
         "parameters": [
           {
@@ -450,6 +462,8 @@
         "tags": [
           "order-controller"
         ],
+        "summary": "獲取訂單詳細資訊",
+        "description": "獲取指定訂單的詳細資訊。受限於SQLRestriction規則，若訂單不存在、已被軟刪除或狀態非 1001 (CREATED)，將回傳 NotFound。",
         "operationId": "getOrderDetails",
         "parameters": [
           {
@@ -480,7 +494,7 @@
           "order-controller"
         ],
         "summary": "刪除訂單",
-        "description": "訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存",
+        "description": "刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會對訂單主檔與明細進行軟刪除，並透過商品服務歸還商品庫存。",
         "operationId": "deleteOrder",
         "parameters": [
           {
@@ -505,6 +519,8 @@
         "tags": [
           "order-controller"
         ],
+        "summary": "獲取帳戶訂單清單",
+        "description": "獲取該帳戶的所有有效訂單清單。受限於SQLRestriction規則，僅會回傳未被軟刪除且狀態為 1001 (CREATED) 的訂單。",
         "operationId": "getOrderList",
         "parameters": [
           {
@@ -539,8 +555,8 @@
         "tags": [
           "order-controller"
         ],
-        "summary": "檢查帳戶ID是否存在於任何訂單中",
-        "description": "判斷帳戶有沒有在訂單中，讓帳戶在更新狀態和刪除時檢核用，只在傳入的帳戶ID有關連訂單時回傳TRUE，傳入不存在和沒再訂單中的帳戶ID也回傳false",
+        "summary": "檢查帳戶ID是否存在於任何有效訂單中",
+        "description": "判斷帳戶是否有關聯的有效訂單，用於帳戶更新與刪除時的檢核。受限於系統規則，僅會針對未軟刪除且狀態為 1001 (CREATED) 的訂單進行判定。",
         "operationId": "AccountIdIsInOrder",
         "parameters": [
           {
