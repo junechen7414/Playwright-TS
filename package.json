@@ -5,12 +5,13 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
+		"clean": "if exist test-results rd /s /q test-results & if exist playwright-report rd /s /q playwright-report",
 		"biome:check": "biome check",
 		"biome:fix": "biome check --write",
 		"api-spec:update": "openapi-typescript ./docs/swagger.json -o ./services/schema/api-types.ts",
 		"pull-image": "podman compose --file docker-compose.test.yml pull",
 		"compose-up": "podman compose --file docker-compose.test.yml up -d",
-		"local-test-all": "playwright test",
+		"local-test-all": "npm run clean && playwright test",
 		"echo test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
