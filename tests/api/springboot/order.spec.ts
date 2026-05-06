@@ -119,10 +119,15 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		const product = await springbootApi.getProduct(existingProductId);
 		const availableQuantity = expectOk(product).available ?? 0;
 
-		// 嘗試將訂單更新為數量大於庫存
+		// 取得原訂單中該商品的數量，因為更新時會先歸還庫存
+		const order = await springbootApi.getOrder(existingOrder.orderId);
+		const originalItem = expectOk(order).items?.find((i) => i.productId === existingProductId);
+		const originalQuantity = originalItem?.quantity ?? 0;
+
+		// 嘗試將訂單更新為數量大於 (目前可用庫存 + 原訂單數量)
 		const response = await springbootApi.updateOrder({
 			...updateOrderData(existingOrder.orderId, existingProductId),
-			items: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
+			items: [{ productId: existingProductId, quantity: availableQuantity + originalQuantity + 1 }],
 		});
 
 		const errorBody = expectError(response, 400);
