@@ -20,7 +20,7 @@ jobs:
     steps:
       # 使用預設的動作來管理 ref 和 repo 相關資訊，在PR的時候不用寫三元運算子
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -52,7 +52,7 @@ jobs:
 
       # 步驟 C：執行測試 (利用 Playwright 容器跑，或者在本機跑)
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Upload Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/

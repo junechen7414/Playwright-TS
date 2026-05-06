@@ -5,7 +5,7 @@ export enum AccountStatus {
 
 export enum ProductSaleStatus {
   Available = 1001,
-  OutOfStock = 1002,
+  Inactive = 1002,
 }
 
 export enum OrderStatus {

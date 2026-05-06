@@ -1,6 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
 import type { components } from '../schema/api-types';
-import { ApiRequester, type ApiResult } from './base-api-client';
+import { type ApiError, ApiRequester, type ApiResult } from './base-api-client';
 
 type Schemas = components['schemas'];
 
@@ -44,8 +44,8 @@ export class SpringbootApiClient {
 		return this.requester.put<void>(`${this.endpoints.account}/${id}`, { data: params });
 	}
 
-	deleteAccount(id: number): Promise<ApiResult<void>> {
-		return this.requester.delete<void>(`${this.endpoints.account}/${id}`);
+	deleteAccount(id: number): Promise<ApiResult<undefined | ApiError>> {
+		return this.requester.delete<undefined | ApiError>(`${this.endpoints.account}/${id}`);
 	}
 
 	/**

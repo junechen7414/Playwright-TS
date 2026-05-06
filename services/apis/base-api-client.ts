@@ -1,5 +1,12 @@
 import { type APIRequestContext, type APIResponse, expect } from '@playwright/test';
 
+export interface ApiError {
+	timestamp: string;
+	status: number;
+	error: string;
+	message: string;
+}
+
 /**
  * 封裝後的 API 回傳結構
  */
@@ -21,11 +28,17 @@ export function expectOk<T>(res: ApiResult<T>): T {
 /**
  * 錯誤斷言：驗證特定錯誤狀態碼並回傳資料
  */
-export function expectError<T>(res: ApiResult<T>, expectedStatus: number): T {
+export function expectError(res: ApiResult<unknown>, expectedStatus: number): ApiError {
 	expect(res.status, `Expected status ${expectedStatus} but got ${res.status}`).toBe(
 		expectedStatus,
 	);
-	return res.data;
+
+	// 驗證並回傳 ApiError 類型
+	const errorData = res.data as ApiError;
+	expect(errorData).toHaveProperty('message');
+	expect(errorData).toHaveProperty('error');
+	expect(errorData).toHaveProperty('status');
+	return errorData;
 }
 
 /**
