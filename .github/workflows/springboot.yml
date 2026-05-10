@@ -35,8 +35,8 @@ jobs:
       # 原本的 A、B 步驟合併為這一個
       - name: Start Environment and Wait
         env:
-          ORACLE_USERNAME: ${{ secrets.DB_USER }}
-          ORACLE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          ORACLE_TEST_USERNAME: ${{ secrets.DB_USER }}
+          ORACLE_TEST_PASSWORD: ${{ secrets.DB_PASSWORD }}
           # 這裡也可以順便帶入 GITHUB_REPOSITORY_OWNER 給 Docker Compose 使用
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
