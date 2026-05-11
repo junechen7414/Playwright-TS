@@ -40,7 +40,7 @@ services:
       # 驗證 FREEPDB1 處於 READ WRITE 模式（完全可操作狀態）
       # 使用環境變數避免密碼暴露在日誌中
       # 查詢 v$pdbs 系統視圖確認 PDB 狀態，而非僅檢查連線
-      test: ["CMD-SHELL", "echo \"SET HEADING OFF FEEDBACK OFF PAGESIZE 0; SELECT open_mode FROM v\\$pdbs WHERE name='FREEPDB1';\" | sqlplus -S ${ORACLE_TEST_USERNAME}/${ORACLE_TEST_PASSWORD}@//localhost:1521/FREEPDB1 | grep -q 'READ WRITE'"]
+      test: ["CMD-SHELL", "echo \"SET HEADING OFF FEEDBACK OFF PAGESIZE 0; SELECT open_mode FROM v\\$$pdbs WHERE name='FREEPDB1';\" | sqlplus -S $${ORACLE_TEST_USERNAME}/$${ORACLE_TEST_PASSWORD}@//localhost:1521/FREEPDB1 | grep -q 'READ WRITE'"]
       interval: 30s
       timeout: 10s
       retries: 20
