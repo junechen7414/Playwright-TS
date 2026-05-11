@@ -37,8 +37,9 @@ services:
       # 存放範本檔案 (掛載到另一個自定義目錄)
       - ./init-scripts-template:/opt/oracle/template
     healthcheck:
-      # 透過 sqlplus 檢查 PDB 是否已經 Ready
-      test: [ "CMD-SHELL", "sqlplus -L ${ORACLE_TEST_USERNAME}/${ORACLE_TEST_PASSWORD}@FREEPDB1 <<<'exit;'" ]
+      # 使用 SYS 使用者檢查 PDB 是否已經 Ready（不依賴應用使用者）
+      # 檢查 FREEPDB1 是否處於 READ WRITE 模式
+      test: [ "CMD-SHELL", "echo 'SELECT open_mode FROM v\\$pdbs WHERE name='\\''FREEPDB1'\\'';' | sqlplus -S / as sysdba | grep -q 'READ WRITE'" ]
       interval: 30s
       timeout: 10s
       retries: 20
