@@ -49,6 +49,17 @@ jobs:
             docker compose -f docker-compose.test.yml logs
             exit 1
           fi
+          
+          # 3. 檢查 Spring Boot 容器是否還在執行
+          echo "=== 檢查容器狀態 ==="
+          docker compose -f docker-compose.test.yml ps
+          
+          # 4. 如果 Spring Boot 容器已停止，印出它的日誌
+          if ! docker compose -f docker-compose.test.yml ps spring-boot-app-test | grep -q "Up"; then
+            echo "=== Spring Boot 容器已停止，印出日誌 ==="
+            docker compose -f docker-compose.test.yml logs app
+            exit 1
+          fi
 
       # 步驟 C：執行測試 (利用 Playwright 容器跑，或者在本機跑)
       - name: Install pnpm
