@@ -35,8 +35,8 @@ jobs:
       # 原本的 A、B 步驟合併為這一個
       - name: Start Environment and Wait
         env:
-          ORACLE_USERNAME: ${{ secrets.DB_USER }}
-          ORACLE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          ORACLE_TEST_USERNAME: ${{ secrets.DB_USER }}
+          ORACLE_TEST_PASSWORD: ${{ secrets.DB_PASSWORD }}
           # 這裡也可以順便帶入 GITHUB_REPOSITORY_OWNER 給 Docker Compose 使用
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
@@ -47,6 +47,17 @@ jobs:
           # 2. (選用) 萬一失敗了，印出日誌方便除錯
           if [ $? -ne 0 ]; then
             docker compose -f docker-compose.test.yml logs
+            exit 1
+          fi
+          
+          # 3. 檢查 Spring Boot 容器是否還在執行
+          echo "=== 檢查容器狀態 ==="
+          docker compose -f docker-compose.test.yml ps
+          
+          # 4. 如果 Spring Boot 容器已停止，印出它的日誌
+          if ! docker compose -f docker-compose.test.yml ps spring-boot-app-test | grep -q "Up"; then
+            echo "=== Spring Boot 容器已停止，印出日誌 ==="
+            docker compose -f docker-compose.test.yml logs app
             exit 1
           fi
 
