@@ -55,7 +55,7 @@ jobs:
           docker compose -f docker-compose.test.yml ps
           
           # 4. 如果 Spring Boot 容器已停止，印出它的日誌
-          if ! docker compose -f docker-compose.test.yml ps spring-boot-app-test | grep -q "Up"; then
+          if ! docker compose -f docker-compose.test.yml ps app | grep -q "Up"; then
             echo "=== Spring Boot 容器已停止，印出日誌 ==="
             docker compose -f docker-compose.test.yml logs app
             exit 1
