@@ -4,3 +4,5 @@ node_modules/
 /playwright-report/
 .auth/
 .env
+
+.bob
