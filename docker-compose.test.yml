@@ -1,7 +1,7 @@
 services:
   # Service Name: app (Spring Boot 應用)
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-junechen7414}/springboot:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-junechen7414}/springboot:${IMAGE_TAG:-latest}
     pull_policy: always # 確保每次測試都使用最新的映像檔，避免因為舊映像檔導致測試不一致    
     # 容器名稱，方便指令podman ps 等操作識別和管理，不用於真正的網路通信
     container_name: spring-boot-app-test
