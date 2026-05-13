@@ -16,8 +16,7 @@
 		"test:e2e": "playwright test tests/api/springboot",
 		"test:e2e:clean": "npm run clean && npm run test:e2e",
 		"test:e2e:ci": "npm run compose-restart && npm run test:e2e:clean",
-		"local-test-all": "npm run clean && playwright test",
-		"echo test": "echo \"Error: no test specified\" && exit 1"
+		"local-test-all": "npm run clean && playwright test"
 	},
 	"keywords": [],
 	"author": "",
