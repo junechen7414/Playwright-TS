@@ -21,6 +21,7 @@ process.env.PW_DATE = process.env.PW_DATE || getLocalDate();
 
 export default defineConfig({
 	testDir: './tests',
+	// globalSetup: './global-setup.ts', // 暫時停用，使用容器重啟策略
 	timeout: 30000,
 	expect: { timeout: 5000 },
 	fullyParallel: true,
