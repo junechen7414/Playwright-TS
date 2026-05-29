@@ -632,8 +632,8 @@
           },
           "status": {
             "type": "string",
-            "maxLength": 1,
-            "minLength": 0
+            "minLength": 1,
+            "pattern": "^[YN]$"
           }
         }
       },
@@ -660,22 +660,29 @@
       },
       "OrderItemRequest": {
         "type": "object",
+        "description": "訂單項目請求（內部使用）",
         "properties": {
           "productId": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
           },
           "quantity": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "購買數量",
+            "example": 2
           }
         }
       },
       "ProcessOrderItemsRequest": {
         "type": "object",
+        "description": "處理訂單項目請求（內部使用）",
         "properties": {
           "originalItems": {
             "type": "array",
+            "description": "原始訂單項目集合",
             "items": {
               "$ref": "#/components/schemas/OrderItemRequest"
             },
@@ -683,6 +690,7 @@
           },
           "updatedItems": {
             "type": "array",
+            "description": "更新後的訂單項目集合",
             "items": {
               "$ref": "#/components/schemas/OrderItemRequest"
             },
