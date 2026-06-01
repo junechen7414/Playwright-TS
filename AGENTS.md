@@ -42,7 +42,7 @@ This file provides guidance to agents when working with code in this repository.
 ## 相關文件
 
 - [筆記.md](./筆記.md) - 詳細的開發指南和最佳實踐
-- [E2E-TESTING-CLEANUP-STRATEGY.md](./E2E-TESTING-CLEANUP-STRATEGY.md) - 測試資料清理策略
+- [docs/testing/e2e-cleanup-strategy.md](./docs/testing/e2e-cleanup-strategy.md) - 測試資料清理策略
 - [.github/instructions/Global.instructions.md](./.github/instructions/Global.instructions.md) - 開發規範
 - [Playwright 官方文件](https://playwright.dev/docs/intro)
 - [Docker Compose 文件](https://docs.docker.com/compose/)
