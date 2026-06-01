@@ -37,7 +37,49 @@ services:
       # 存放範本檔案 (掛載到另一個自定義目錄)
       - ./init-scripts-template:/opt/oracle/template
     healthcheck:
-      test: ["CMD-SHELL", "sqlplus -S / as sysdba <<EOF\nSET PAGESIZE 0 FEEDBACK OFF\nSELECT open_mode FROM v\\$$pdbs WHERE name='FREEPDB1';\nEXIT;\nEOF | grep -q 'READ WRITE'"]
+      # 三階段健康檢查：PDB 開啟 + 使用者建立 + Listener 註冊服務
+      test: 
+        - "CMD-SHELL"
+        - |
+          # 1. 檢查 PDB 是否處於 READ WRITE 模式
+          PDB_STATUS=$$(sqlplus -S / as sysdba <<'EOSQL'
+          SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF
+          SELECT open_mode FROM v$$pdbs WHERE name='FREEPDB1';
+          EXIT;
+          EOSQL
+          )
+          
+          if ! echo "$$PDB_STATUS" | grep -q 'READ WRITE'; then
+            echo "PDB not ready"
+            exit 1
+          fi
+          
+          # 2. 檢查測試使用者是否已建立
+          USER_EXISTS=$$(sqlplus -S / as sysdba <<'EOSQL'
+          SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF
+          ALTER SESSION SET CONTAINER = FREEPDB1;
+          SELECT COUNT(*) FROM dba_users WHERE username = UPPER('${ORACLE_TEST_USERNAME}');
+          EXIT;
+          EOSQL
+          )
+          
+          USER_EXISTS=$$(echo "$$USER_EXISTS" | tr -d '[:space:]')
+          
+          if [ "$$USER_EXISTS" != "1" ]; then
+            echo "Test user not created yet"
+            exit 1
+          fi
+          
+          # 3. 檢查 Listener 是否已註冊 FREEPDB1 服務
+          LISTENER_STATUS=$$(lsnrctl status | grep -i "FREEPDB1" | wc -l)
+          
+          if [ "$$LISTENER_STATUS" -eq "0" ]; then
+            echo "FREEPDB1 service not registered with listener"
+            exit 1
+          fi
+          
+          echo "Database fully ready"
+          exit 0
       interval: 30s
       timeout: 10s
       retries: 20
