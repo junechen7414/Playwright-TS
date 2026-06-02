@@ -12,7 +12,7 @@
 
 **工作原理**：
 - 每次測試執行前停止並刪除所有測試容器和 volumes
-- 重新啟動 Docker Compose 環境（Spring Boot + Oracle DB）
+- 重新啟動 podman compose 環境（Spring Boot + Oracle DB）
 - Spring Boot 啟動時會自動執行 Flyway migrate
 - 等待服務健康檢查通過後執行測試
 
@@ -38,13 +38,13 @@
 
 ```bash
 # 1. 啟動測試環境（只需執行一次）
-npm run compose-up
+pnpm run compose-up
 
 # 2. 執行測試（可重複執行）
-npm run test:e2e
+pnpm run test:e2e
 
 # 3. 停止測試環境（可選）
-npm run compose-down
+pnpm run compose-down
 ```
 
 **注意**：
@@ -64,8 +64,8 @@ npm run compose-down
 # Linux/macOS (Bash)
 bash scripts/test-e2e-ci.sh
 
-# 或使用 npm script
-npm run test:e2e:ci
+# 或使用 pnpm script
+pnpm run test:e2e:ci
 ```
 
 **腳本會自動執行**：
@@ -124,14 +124,14 @@ export default defineConfig({
 
 ```bash
 # 1. 啟動測試環境
-npm run compose-up
+pnpm run compose-up
 
 # 2. 等待容器啟動完成（約 1-2 分鐘）
 # 可以使用以下指令檢查狀態：
 podman ps
 
 # 3. 執行測試
-npm run test:e2e
+pnpm run test:e2e
 ```
 
 ### CI/CD Pipeline
@@ -139,7 +139,7 @@ npm run test:e2e
 ```yaml
 # GitHub Actions 範例
 - name: Run E2E Tests
-  run: npm run test:e2e:ci
+  run: pnpm run test:e2e:ci
   env:
     ORACLE_TEST_USERNAME: ${{ secrets.ORACLE_TEST_USERNAME }}
     ORACLE_TEST_PASSWORD: ${{ secrets.ORACLE_TEST_PASSWORD }}
@@ -169,7 +169,7 @@ ORACLE_TEST_PASSWORD=your_password
 
 **方式 1（手動啟動）**：
 - 容器保持運行，測試資料會累積
-- 如需乾淨環境，執行 `npm run compose-restart`
+- 如需乾淨環境，執行 `pnpm run compose-restart`
 
 **方式 2（容器重啟）**：
 - 每次都是全新環境，無資料累積問題
@@ -181,7 +181,7 @@ ORACLE_TEST_PASSWORD=your_password
 ### 問題 1：容器啟動失敗
 
 **檢查項目**：
-1. 確認 Docker/Podman 正在運行
+1. 確認 podman 正在運行
 2. 檢查 `.env` 檔案是否存在且正確
 3. 查看容器日誌：`podman logs spring-boot-app-test`
 
@@ -252,7 +252,7 @@ ORACLE_TEST_PASSWORD=your_password
 ## 📚 相關文件
 
 - [Playwright 官方文件](https://playwright.dev/docs/intro)
-- [Docker Compose 文件](https://docs.docker.com/compose/)
+- [Podman Compose 文件](https://docs.podman.io/en/latest/markdown/podman-compose.1.html)
 - [Flyway 官方文件](https://flywaydb.org/documentation/)
 
 ---

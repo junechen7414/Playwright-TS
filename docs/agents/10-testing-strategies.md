@@ -67,8 +67,8 @@ pnpm playwright test --project=api-e2e
 - ❌ 單元測試（過於重量級）
 
 ### 詳細說明
+完整的策略分析請參考：[e2e-cleanup-strategy.md](../testing/e2e-cleanup-strategy.md)
 
-完整的策略分析請參考：[E2E-TESTING-CLEANUP-STRATEGY.md](../../E2E-TESTING-CLEANUP-STRATEGY.md)
 
 ## 全域登入狀態分享
 
@@ -263,4 +263,4 @@ test('完整購物流程', { tag: '@regression' }, async ({ page }) => {
 - [快速開始](./03-quick-start.md)
 - [CI/CD 整合](./11-cicd-integration.md)
 - [配置指南](./12-configuration-guide.md)
-- [E2E 測試清理策略](../../E2E-TESTING-CLEANUP-STRATEGY.md)
+- [E2E 測試清理策略](../testing/e2e-cleanup-strategy.md)
