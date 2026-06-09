@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import type { components } from '../schema/api-types';
+import type { components, PageResponse } from '../schema/api-types';
 import { type ApiError, ApiRequester, type ApiResult } from './base-api-client';
 
 type Schemas = components['schemas'];
@@ -90,9 +90,17 @@ export class SpringbootApiClient {
 		return this.requester.get<Schemas['GetOrderDetailResponse']>(`${this.endpoints.order}/${id}`);
 	}
 
-	listOrdersByAccount(accountId: number): Promise<ApiResult<Schemas['GetOrderListResponse'][]>> {
-		return this.requester.get<Schemas['GetOrderListResponse'][]>(
+	listOrdersByAccount(
+		accountId: number,
+		params?: {
+			page?: number;
+			size?: number;
+			sort?: string;
+		},
+	): Promise<ApiResult<PageResponse<Schemas['GetOrderListResponse']>>> {
+		return this.requester.get<PageResponse<Schemas['GetOrderListResponse']>>(
 			`${this.endpoints.order}/account/${accountId}`,
+			params ? { params } : undefined,
 		);
 	}
 

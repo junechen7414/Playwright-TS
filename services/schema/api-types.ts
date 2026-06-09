@@ -4,757 +4,776 @@
  */
 
 export interface paths {
-    "/product/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductDetail"];
-        /**
-         * 更新商品
-         * @description 該ID商品若沒找到拋出NotFound例外，再檢查是否要更改成已經存在的商品名稱拋出特定例外，沒有則更新成功
-         */
-        put: operations["updateProduct"];
-        post?: never;
-        /**
-         * 刪除商品
-         * @description 找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除
-         */
-        delete: operations["deleteProduct"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * 更新訂單內容
-         * @description 不存在該訂單ID拋出NotFound，若商品狀態不可銷售拋出特定例外，再來若有商品庫存不足拋出特定例外，都沒更新商品庫存、訂單
-         */
-        put: operations["updateOrder"];
-        /**
-         * 建立新訂單
-         * @description 帳戶狀態N拋出特定例外，之後若商品狀態不可銷售拋出特定例外，再來若商品庫存不足拋出特定例外，沒例外則更新商品庫存和新增訂單
-         */
-        post: operations["createOrder"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/account/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAccountDetail"];
-        /**
-         * 修改帳戶
-         * @description 該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功
-         */
-        put: operations["updateAccount"];
-        post?: never;
-        /**
-         * 刪除帳戶
-         * @description 找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除
-         */
-        delete: operations["deleteAccount"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/product": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductList"];
-        put?: never;
-        /**
-         * 新增商品
-         * @description 如果有同名商品拋出特定例外，沒有則新增成功
-         */
-        post: operations["createProduct"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/product/processOrderItems": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 處理訂單中的商品
-         * @description 處理訂單中的商品資訊
-         */
-        post: operations["processOrderItems"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/account": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getAccountList"];
-        put?: never;
-        post: operations["createAccount"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/PlaywrightTestData/createOrderPrecondition": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createOrderPrecondition"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/product/batch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getProductBatch"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/{orderId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrderDetails"];
-        put?: never;
-        post?: never;
-        /**
-         * 刪除訂單
-         * @description 訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存
-         */
-        delete: operations["deleteOrder"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/account/{accountId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getOrderList"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/order/account/{accountId}/exists": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 檢查帳戶ID是否存在於任何訂單中
-         * @description 判斷帳戶有沒有在訂單中，讓帳戶在更新狀態和刪除時檢核用，只在傳入的帳戶ID有關連訂單時回傳TRUE，傳入不存在和沒再訂單中的帳戶ID也回傳false
-         */
-        get: operations["AccountIdIsInOrder"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+	'/product/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getProductDetail'];
+		/**
+		 * 更新商品
+		 * @description 該ID商品若沒找到拋出NotFound例外，再檢查是否要更改成已經存在的商品名稱拋出特定例外，沒有則更新成功
+		 */
+		put: operations['updateProduct'];
+		post?: never;
+		/**
+		 * 刪除商品
+		 * @description 找不到商品或商品已經軟刪除過拋出NotFound，沒有則軟刪除
+		 */
+		delete: operations['deleteProduct'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/order': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/**
+		 * 更新訂單內容
+		 * @description 不存在該訂單ID拋出NotFound，若商品狀態不可銷售拋出特定例外，再來若有商品庫存不足拋出特定例外，都沒更新商品庫存、訂單
+		 */
+		put: operations['updateOrder'];
+		/**
+		 * 建立新訂單
+		 * @description 帳戶狀態N拋出特定例外，之後若商品狀態不可銷售拋出特定例外，再來若商品庫存不足拋出特定例外，沒例外則更新商品庫存和新增訂單
+		 */
+		post: operations['createOrder'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/account/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getAccountDetail'];
+		/**
+		 * 修改帳戶
+		 * @description 該ID帳戶不存在拋出NotFound例外，再檢查是否狀態從Y改成N，帳戶有關連到的訂單的話拋出例外，都沒事就更新成功
+		 */
+		put: operations['updateAccount'];
+		post?: never;
+		/**
+		 * 刪除帳戶
+		 * @description 找不到帳戶或帳戶已經軟刪除過拋出NotFound，如果仍關聯訂單拋出特定例外，沒有則軟刪除
+		 */
+		delete: operations['deleteAccount'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/product': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getProductList'];
+		put?: never;
+		/**
+		 * 新增商品
+		 * @description 如果有同名商品拋出特定例外，沒有則新增成功
+		 */
+		post: operations['createProduct'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/product/processOrderItems': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * 處理訂單中的商品
+		 * @description 處理訂單中的商品資訊
+		 */
+		post: operations['processOrderItems'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/account': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getAccountList'];
+		put?: never;
+		post: operations['createAccount'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/PlaywrightTestData/createOrderPrecondition': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['createOrderPrecondition'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/product/batch': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getProductBatch'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/order/{orderId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getOrderDetails'];
+		put?: never;
+		post?: never;
+		/**
+		 * 刪除訂單
+		 * @description 訂單id不存在或狀態已經為1003取消拋出NotFound，都沒有則軟刪除更新OrderInfo的狀態資料欄位，真刪除OrderDetail並歸還商品庫存
+		 */
+		delete: operations['deleteOrder'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/order/account/{accountId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['getOrderList'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/order/account/{accountId}/exists': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * 檢查帳戶ID是否存在於任何訂單中
+		 * @description 判斷帳戶有沒有在訂單中，讓帳戶在更新狀態和刪除時檢核用，只在傳入的帳戶ID有關連訂單時回傳TRUE，傳入不存在和沒再訂單中的帳戶ID也回傳false
+		 */
+		get: operations['AccountIdIsInOrder'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        UpdateProductRequest: {
-            name?: string;
-            price: number;
-            /** Format: int32 */
-            saleStatus: number;
-            /** Format: int32 */
-            available: number;
-        };
-        UpdateOrderDetailRequest: {
-            /** Format: int32 */
-            productId: number;
-            /** Format: int32 */
-            quantity: number;
-        };
-        UpdateOrderRequest: {
-            /** Format: int32 */
-            orderId: number;
-            /** Format: int32 */
-            orderStatus: number;
-            items?: components["schemas"]["UpdateOrderDetailRequest"][];
-        };
-        UpdateAccountRequest: {
-            name?: string;
-            status?: string;
-        };
-        CreateProductRequest: {
-            name?: string;
-            price: number;
-            /** Format: int32 */
-            available: number;
-        };
-        OrderItemRequest: {
-            /** Format: int32 */
-            productId?: number;
-            /** Format: int32 */
-            quantity?: number;
-        };
-        ProcessOrderItemsRequest: {
-            originalItems?: components["schemas"]["OrderItemRequest"][];
-            updatedItems?: components["schemas"]["OrderItemRequest"][];
-        };
-        CreateOrderDetailRequest: {
-            /** Format: int32 */
-            productId: number;
-            /** Format: int32 */
-            quantity: number;
-        };
-        CreateOrderRequest: {
-            /** Format: int32 */
-            accountId: number;
-            orderDetails?: components["schemas"]["CreateOrderDetailRequest"][];
-        };
-        CreateAccountRequest: {
-            name?: string;
-        };
-        GetProductListResponse: {
-            /** Format: int32 */
-            id?: number;
-            name?: string;
-            price?: number;
-            /** Format: int32 */
-            saleStatus?: number;
-            /** Format: int32 */
-            available?: number;
-        };
-        GetProductDetailResponse: {
-            name?: string;
-            price?: number;
-            /** Format: int32 */
-            saleStatus?: number;
-            /** Format: int32 */
-            available?: number;
-        };
-        GetOrderDetailResponse: {
-            /** Format: int32 */
-            accountId?: number;
-            /** Format: int32 */
-            orderStatus?: number;
-            totalAmount?: number;
-            items?: components["schemas"]["OrderItemDTO"][];
-        };
-        OrderItemDTO: {
-            /** Format: int32 */
-            productId?: number;
-            productName?: string;
-            /** Format: int32 */
-            quantity?: number;
-            productPrice?: number;
-        };
-        GetOrderListResponse: {
-            /** Format: int32 */
-            orderId?: number;
-            /** Format: int32 */
-            status?: number;
-            totalAmount?: number;
-        };
-        GetAccountListResponse: {
-            /** Format: int32 */
-            id?: number;
-            name?: string;
-            status?: string;
-        };
-        GetAccountDetailResponse: {
-            name?: string;
-            status?: string;
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		UpdateProductRequest: {
+			name?: string;
+			price: number;
+			/** Format: int32 */
+			saleStatus: number;
+			/** Format: int32 */
+			available: number;
+		};
+		UpdateOrderDetailRequest: {
+			/** Format: int32 */
+			productId: number;
+			/** Format: int32 */
+			quantity: number;
+		};
+		UpdateOrderRequest: {
+			/** Format: int32 */
+			orderId: number;
+			/** Format: int32 */
+			orderStatus: number;
+			items?: components['schemas']['UpdateOrderDetailRequest'][];
+		};
+		UpdateAccountRequest: {
+			name?: string;
+			status?: string;
+		};
+		CreateProductRequest: {
+			name?: string;
+			price: number;
+			/** Format: int32 */
+			available: number;
+		};
+		OrderItemRequest: {
+			/** Format: int32 */
+			productId?: number;
+			/** Format: int32 */
+			quantity?: number;
+		};
+		ProcessOrderItemsRequest: {
+			originalItems?: components['schemas']['OrderItemRequest'][];
+			updatedItems?: components['schemas']['OrderItemRequest'][];
+		};
+		CreateOrderDetailRequest: {
+			/** Format: int32 */
+			productId: number;
+			/** Format: int32 */
+			quantity: number;
+		};
+		CreateOrderRequest: {
+			/** Format: int32 */
+			accountId: number;
+			items?: components['schemas']['CreateOrderDetailRequest'][];
+		};
+		CreateAccountRequest: {
+			name?: string;
+		};
+		GetProductListResponse: {
+			/** Format: int32 */
+			id?: number;
+			name?: string;
+			price?: number;
+			/** Format: int32 */
+			saleStatus?: number;
+			/** Format: int32 */
+			available?: number;
+		};
+		GetProductDetailResponse: {
+			name?: string;
+			price?: number;
+			/** Format: int32 */
+			saleStatus?: number;
+			/** Format: int32 */
+			available?: number;
+		};
+		GetOrderDetailResponse: {
+			/** Format: int32 */
+			accountId?: number;
+			/** Format: int32 */
+			orderStatus?: number;
+			totalAmount?: number;
+			items?: components['schemas']['OrderItemDTO'][];
+		};
+		OrderItemDTO: {
+			/** Format: int32 */
+			productId?: number;
+			productName?: string;
+			/** Format: int32 */
+			quantity?: number;
+			productPrice?: number;
+		};
+		GetOrderListResponse: {
+			/** Format: int32 */
+			orderId?: number;
+			/** Format: int32 */
+			status?: number;
+			totalAmount?: number;
+		};
+		GetAccountListResponse: {
+			/** Format: int32 */
+			id?: number;
+			name?: string;
+			status?: string;
+		};
+		GetAccountDetailResponse: {
+			name?: string;
+			status?: string;
+		};
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
+}
+/**
+ * 分頁回應的通用型別
+ * 用於包裝分頁資料的標準格式
+ *
+ * 注意：此介面根據實際後端 API 回應定義
+ * 後端使用簡化版的分頁回應，而非完整的 Spring Data Page 物件
+ */
+export interface PageResponse<T> {
+	/** 分頁內容陣列 */
+	content: T[];
+	/** 當前頁碼（從 0 開始） */
+	page: number;
+	/** 每頁大小 */
+	size: number;
+	/** 總元素數量 */
+	totalElements: number;
+	/** 總頁數 */
+	totalPages: number;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getProductDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetProductDetailResponse"];
-                };
-            };
-        };
-    };
-    updateProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProductRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    createOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": number;
-                };
-            };
-        };
-    };
-    getAccountDetail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetAccountDetailResponse"];
-                };
-            };
-        };
-    };
-    updateAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAccountRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    deleteAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getProductList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetProductListResponse"][];
-                };
-            };
-        };
-    };
-    createProduct: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateProductRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": number;
-                };
-            };
-        };
-    };
-    processOrderItems: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProcessOrderItemsRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getAccountList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetAccountListResponse"][];
-                };
-            };
-        };
-    };
-    createAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAccountRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": number;
-                };
-            };
-        };
-    };
-    createOrderPrecondition: {
-        parameters: {
-            query: {
-                count: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": string;
-                };
-            };
-        };
-    };
-    getProductBatch: {
-        parameters: {
-            query: {
-                ids: number[];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetProductDetailResponse"][];
-                };
-            };
-        };
-    };
-    getOrderDetails: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                orderId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetOrderDetailResponse"];
-                };
-            };
-        };
-    };
-    deleteOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                orderId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getOrderList: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["GetOrderListResponse"][];
-                };
-            };
-        };
-    };
-    AccountIdIsInOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": boolean;
-                };
-            };
-        };
-    };
+	getProductDetail: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetProductDetailResponse'];
+				};
+			};
+		};
+	};
+	updateProduct: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateProductRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	deleteProduct: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	updateOrder: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateOrderRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	createOrder: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateOrderRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': number;
+				};
+			};
+		};
+	};
+	getAccountDetail: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetAccountDetailResponse'];
+				};
+			};
+		};
+	};
+	updateAccount: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateAccountRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	deleteAccount: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	getProductList: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetProductListResponse'][];
+				};
+			};
+		};
+	};
+	createProduct: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateProductRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': number;
+				};
+			};
+		};
+	};
+	processOrderItems: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ProcessOrderItemsRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	getAccountList: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetAccountListResponse'][];
+				};
+			};
+		};
+	};
+	createAccount: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateAccountRequest'];
+			};
+		};
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': number;
+				};
+			};
+		};
+	};
+	createOrderPrecondition: {
+		parameters: {
+			query: {
+				count: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': string;
+				};
+			};
+		};
+	};
+	getProductBatch: {
+		parameters: {
+			query: {
+				ids: number[];
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetProductDetailResponse'][];
+				};
+			};
+		};
+	};
+	getOrderDetails: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				orderId: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetOrderDetailResponse'];
+				};
+			};
+		};
+	};
+	deleteOrder: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				orderId: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	getOrderList: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				accountId: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': components['schemas']['GetOrderListResponse'][];
+				};
+			};
+		};
+	};
+	AccountIdIsInOrder: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				accountId: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description OK */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'*/*': boolean;
+				};
+			};
+		};
+	};
 }

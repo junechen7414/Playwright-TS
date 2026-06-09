@@ -77,9 +77,32 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 
 	test('應該能根據帳號查詢訂單列表', async ({ springbootApi, existingMultipleOrdersAccountId }) => {
 		const response = await springbootApi.listOrdersByAccount(existingMultipleOrdersAccountId);
-		const list = expectOk(response);
+		const pageResponse = expectOk(response);
 
-		expect(Array.isArray(list)).toBeTruthy();
+		// 驗證分頁回應結構
+		expect(pageResponse).toHaveProperty('content');
+		expect(pageResponse).toHaveProperty('totalElements');
+		expect(pageResponse).toHaveProperty('totalPages');
+		expect(Array.isArray(pageResponse.content)).toBeTruthy();
+		expect(pageResponse.content.length).toBeGreaterThan(0);
+	});
+
+	test('應該能使用分頁參數查詢訂單列表', async ({
+		springbootApi,
+		existingMultipleOrdersAccountId,
+	}) => {
+		// 使用分頁參數查詢
+		const response = await springbootApi.listOrdersByAccount(existingMultipleOrdersAccountId, {
+			page: 0,
+			size: 1,
+			sort: 'id,desc',
+		});
+		const pageResponse = expectOk(response);
+
+		// 驗證分頁參數生效
+		expect(pageResponse.size).toBe(1);
+		expect(pageResponse.page).toBe(0);
+		expect(pageResponse.content.length).toBeLessThanOrEqual(1);
 	});
 
 	test('應該能刪除訂單', async ({ springbootApi, existingOrder }) => {
@@ -102,7 +125,7 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		// 嘗試建立一個訂單數量大於庫存的訂單
 		const response = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			orderDetails: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
+			items: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
 		});
 
 		const errorBody = expectError(response, 400);
