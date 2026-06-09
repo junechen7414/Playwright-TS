@@ -56,6 +56,12 @@ This file provides guidance to agents when working with code in this repository.
 5. **優先使用 `getByRole`**: 最穩健的元素定位方式
 6. **容器重啟策略**: 確保測試隔離性和可重複性
 7. **繁體中文優先**: 所有註解和文件使用繁體中文
+8. **持續改進文件**: 發現可改進的 instruction 時，應主動提出並更新相關文件
+9. **遵循 Git 工作流程**:
+   - 必須在適當的 feature 分支上進行開發（參考 [@Git 工作流程](docs/agents/05-git-workflow.md)）
+   - 推送後需清理本地和遠端分支（合併後刪除 feature 分支）
+   - 使用 `git checkout main && git pull && git branch -d <branch-name>` 清理本地分支
+   - 使用 `git push origin --delete <branch-name>` 清理遠端分支（如需要）
 
 ---
 
