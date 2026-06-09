@@ -58,7 +58,7 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	newOrderData: async ({}, use) => {
 		await use((accountId, productId) => ({
 			accountId: accountId,
-			orderDetails: [{ productId: productId, quantity: 1 }],
+			items: [{ productId: productId, quantity: 1 }],
 		}));
 	},
 

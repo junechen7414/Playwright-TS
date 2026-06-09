@@ -41,9 +41,7 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		// 在 fixture 中建立一筆訂單資料
 		const response = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			orderDetails: [
-				{ productId: existingProductId, quantity: faker.number.int({ min: 1, max: 5 }) },
-			],
+			items: [{ productId: existingProductId, quantity: faker.number.int({ min: 1, max: 5 }) }],
 		});
 		const orderId = expectOk(response);
 
@@ -56,13 +54,13 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		// 建立多張訂單，確保有多筆資料
 		const orderResponse1 = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			orderDetails: [{ productId: existingProductId, quantity: 1 }],
+			items: [{ productId: existingProductId, quantity: 1 }],
 		});
 		expectOk(orderResponse1);
 
 		const orderResponse2 = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			orderDetails: [{ productId: existingProductId, quantity: 1 }],
+			items: [{ productId: existingProductId, quantity: 1 }],
 		});
 		expectOk(orderResponse2);
 

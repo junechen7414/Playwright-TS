@@ -102,7 +102,7 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		// 嘗試建立一個訂單數量大於庫存的訂單
 		const response = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			orderDetails: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
+			items: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
 		});
 
 		const errorBody = expectError(response, 400);
