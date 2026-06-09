@@ -1,45 +1,54 @@
 name: Spring Boot API E2E Tests
 on:
-  # 支援手動觸發
+  # 支援手動觸發 (最後的保險)
   workflow_dispatch:
     inputs:
       image_tag:
         description: 'Backend image tag to test'
         required: false
         default: 'latest'
-  # 支援後端連動觸發 (由後端 Action 發送訊號)
+  # 支援後端連動觸發 (後端 Main 自動觸發 / 後端 PR 貼標籤觸發)
   repository_dispatch:
     types: [backend_image_updated]
-  # 支援 PR 觸發
+  # 支援本 Repo PR 標籤觸發 (測試腳本變更時使用)
   pull_request:
+    types: [labeled, synchronize]
     branches: [main]
 
 jobs:
   e2e-test:
+    # 只有以下三種情況會執行：
+    # 1. 後端發送訊號 (repository_dispatch)
+    # 2. 手動觸發 (workflow_dispatch)
+    # 3. 本 PR 被貼上 'e2e-test' 標籤
+    if: |
+      github.event_name == 'repository_dispatch' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'e2e-test'))
     timeout-minutes: 60
     runs-on: ubuntu-latest
     
-    # 注意：我們移除原本的 container 設定，改在 Runner 本機操作 Docker Compose
-    # 這樣才能同時管理多個容器 (App, DB, Playwright)
-
     steps:
-      # 使用預設的動作來管理 ref 和 repo 相關資訊，在PR的時候不用寫三元運算子
       - name: Checkout repository
         uses: actions/checkout@v6
 
       - name: Set Image Tag
         id: set-tag
         run: |
-          # 優先順序：repository_dispatch > workflow_dispatch > 預設 latest
           if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            # 來自後端的自動/手動標籤觸發，直接拿 payload 裡的 tag
             TAG="${{ github.event.client_payload.image_tag }}"
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             TAG="${{ inputs.image_tag }}"
           else
+            # 本 Repo 的 PR 測試，預設對接後端的 latest 或 main 環境
             TAG="latest"
           fi
           echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
           echo "🏷️ Using image tag: $TAG"
+          echo "### 🚀 Test Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** \`$TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** \`${{ github.event_name }}\`" >> $GITHUB_STEP_SUMMARY
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -56,28 +65,21 @@ jobs:
         env:
           ORACLE_TEST_USERNAME: ${{ secrets.DB_USER }}
           ORACLE_TEST_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          # 這裡也可以順便帶入 GITHUB_REPOSITORY_OWNER 給 Docker Compose 使用
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           IMAGE_TAG: ${{ steps.set-tag.outputs.IMAGE_TAG }}
         run: |
           echo "🚀 Starting environment with image tag: $IMAGE_TAG"
-          # 1. 啟動並等待健康檢查完成
-          # --quiet-pull 減少日誌干擾，--wait 會參考你 compose 裡的 healthcheck
+          # --wait 會等待 Dockerfile 中的 HEALTHCHECK 成功
           docker compose -f docker-compose.test.yml up -d --wait --quiet-pull
           
-          # 2. (選用) 萬一失敗了，印出日誌方便除錯
-          if [ $? -ne 0 ]; then
-            docker compose -f docker-compose.test.yml logs
-            exit 1
-          fi
-          
-          # 3. 檢查 Spring Boot 容器是否還在執行
-          echo "=== 檢查容器狀態 ==="
+          echo "=== Container Status ==="
           docker compose -f docker-compose.test.yml ps
           
-          # 4. 如果 Spring Boot 容器已停止，印出它的日誌
-          if ! docker compose -f docker-compose.test.yml ps app | grep -q "Up"; then
-            echo "=== Spring Boot 容器已停止，印出日誌 ==="
+          # 檢查 app 是否真的 healthy (確保不是因為超時而強行結束)
+          STATUS=$(docker inspect --format='{{json .State.Health.Status}}' spring-boot-app-test)
+          echo "App status: $STATUS"
+          if [ "$STATUS" != "\"healthy\"" ]; then
+            echo "❌ App failed to become healthy. Logs:"
             docker compose -f docker-compose.test.yml logs app
             exit 1
           fi
