@@ -337,6 +337,38 @@ export interface components {
 	headers: never;
 	pathItems: never;
 }
+/**
+ * 分頁回應的通用型別
+ * 用於包裝分頁資料的標準格式
+ */
+export interface PageResponse<T> {
+	content: T[];
+	pageable: {
+		pageNumber: number;
+		pageSize: number;
+		sort: {
+			sorted: boolean;
+			unsorted: boolean;
+			empty: boolean;
+		};
+		offset: number;
+		paged: boolean;
+		unpaged: boolean;
+	};
+	totalPages: number;
+	totalElements: number;
+	last: boolean;
+	size: number;
+	number: number;
+	sort: {
+		sorted: boolean;
+		unsorted: boolean;
+		empty: boolean;
+	};
+	numberOfElements: number;
+	first: boolean;
+	empty: boolean;
+}
 export type $defs = Record<string, never>;
 export interface operations {
 	getProductDetail: {
