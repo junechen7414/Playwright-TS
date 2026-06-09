@@ -101,7 +101,7 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 
 		// 驗證分頁參數生效
 		expect(pageResponse.size).toBe(1);
-		expect(pageResponse.number).toBe(0);
+		expect(pageResponse.page).toBe(0);
 		expect(pageResponse.content.length).toBeLessThanOrEqual(1);
 	});
 

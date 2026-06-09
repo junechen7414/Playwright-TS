@@ -340,34 +340,21 @@ export interface components {
 /**
  * 分頁回應的通用型別
  * 用於包裝分頁資料的標準格式
+ *
+ * 注意：此介面根據實際後端 API 回應定義
+ * 後端使用簡化版的分頁回應，而非完整的 Spring Data Page 物件
  */
 export interface PageResponse<T> {
+	/** 分頁內容陣列 */
 	content: T[];
-	pageable: {
-		pageNumber: number;
-		pageSize: number;
-		sort: {
-			sorted: boolean;
-			unsorted: boolean;
-			empty: boolean;
-		};
-		offset: number;
-		paged: boolean;
-		unpaged: boolean;
-	};
-	totalPages: number;
-	totalElements: number;
-	last: boolean;
+	/** 當前頁碼（從 0 開始） */
+	page: number;
+	/** 每頁大小 */
 	size: number;
-	number: number;
-	sort: {
-		sorted: boolean;
-		unsorted: boolean;
-		empty: boolean;
-	};
-	numberOfElements: number;
-	first: boolean;
-	empty: boolean;
+	/** 總元素數量 */
+	totalElements: number;
+	/** 總頁數 */
+	totalPages: number;
 }
 export type $defs = Record<string, never>;
 export interface operations {
