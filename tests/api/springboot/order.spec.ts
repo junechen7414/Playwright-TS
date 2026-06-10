@@ -9,11 +9,11 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('應該能建立新訂單', async ({
 		springbootApi,
 		existingAccount,
-		existingProductId,
+		existingProduct,
 		newOrderData,
 	}) => {
 		const response = await springbootApi.createOrder(
-			newOrderData(existingAccount.id, existingProductId),
+			newOrderData(existingAccount.id, existingProduct.id),
 		);
 		const orderId = expectOk(response);
 
@@ -23,19 +23,19 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('當帳戶狀態為無效時，無法建立新訂單', async ({
 		springbootApi,
 		existingAccount,
-		existingProductId,
+		existingProduct,
 		newOrderData,
 		updateAccountData,
 	}) => {
 		// 將帳戶狀態設為無效
 		const updateResponse = await springbootApi.updateAccount(existingAccount.id, {
-			...updateAccountData(existingAccount),
+			...updateAccountData,
 			status: AccountStatus.Inactive,
 		});
 		expectOk(updateResponse);
 
 		const response = await springbootApi.createOrder(
-			newOrderData(existingAccount.id, existingProductId),
+			newOrderData(existingAccount.id, existingProduct.id),
 		);
 
 		const errorBody = expectError(response, 404);
@@ -45,39 +45,42 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('當商品狀態為無效時，無法建立新訂單', async ({
 		springbootApi,
 		existingAccount,
-		existingProductId,
+		existingProduct,
 		newOrderData,
 		updateProductData,
 	}) => {
 		// 將商品狀態設為無效
-		const updateResponse = await springbootApi.updateProduct(existingProductId, {
-			...updateProductData(existingProductId),
+		const updateResponse = await springbootApi.updateProduct(existingProduct.id, {
+			...updateProductData,
 			saleStatus: ProductSaleStatus.Inactive,
 		});
 		expectOk(updateResponse);
 
 		const response = await springbootApi.createOrder(
-			newOrderData(existingAccount.id, existingProductId),
+			newOrderData(existingAccount.id, existingProduct.id),
 		);
 
 		const errorBody = expectError(response, 404);
-		expect(errorBody.message).toBe(`Products not found with IDs: ${existingProductId}`);
+		expect(errorBody.message).toBe(`Products not found with IDs: ${existingProduct.id}`);
 	});
 
 	test('應該能更新訂單明細數量與狀態', async ({
 		springbootApi,
 		existingOrder,
-		existingProductId,
+		existingProduct,
 		updateOrderData,
 	}) => {
 		const response = await springbootApi.updateOrder(
-			updateOrderData(existingOrder.orderId, existingProductId),
+			updateOrderData(existingOrder.id, existingProduct.id),
 		);
 		expectOk(response);
 	});
 
-	test('應該能根據帳號查詢訂單列表', async ({ springbootApi, existingMultipleOrdersAccountId }) => {
-		const response = await springbootApi.listOrdersByAccount(existingMultipleOrdersAccountId);
+	test('應該能根據帳號查詢訂單列表', async ({
+		springbootApi,
+		existingAccountWithMultipleOrders,
+	}) => {
+		const response = await springbootApi.listOrdersByAccount(existingAccountWithMultipleOrders.id);
 		const pageResponse = expectOk(response);
 
 		// 驗證分頁回應結構
@@ -86,18 +89,24 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		expect(pageResponse).toHaveProperty('totalPages');
 		expect(Array.isArray(pageResponse.content)).toBeTruthy();
 		expect(pageResponse.content.length).toBeGreaterThan(0);
+
+		// 驗證訂單數量與 fixture 一致
+		expect(pageResponse.content.length).toBe(existingAccountWithMultipleOrders.orderIds.length);
 	});
 
 	test('應該能使用分頁參數查詢訂單列表', async ({
 		springbootApi,
-		existingMultipleOrdersAccountId,
+		existingAccountWithMultipleOrders,
 	}) => {
 		// 使用分頁參數查詢
-		const response = await springbootApi.listOrdersByAccount(existingMultipleOrdersAccountId, {
-			page: 0,
-			size: 1,
-			sort: 'id,desc',
-		});
+		const response = await springbootApi.listOrdersByAccount(
+			existingAccountWithMultipleOrders.id,
+			{
+				page: 0,
+				size: 1,
+				sort: 'id,desc',
+			},
+		);
 		const pageResponse = expectOk(response);
 
 		// 驗證分頁參數生效
@@ -107,54 +116,51 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 	});
 
 	test('應該能刪除訂單', async ({ springbootApi, existingOrder }) => {
-		const response = await springbootApi.deleteOrder(existingOrder.orderId);
+		const response = await springbootApi.deleteOrder(existingOrder.id);
 		expectOk(response);
 
-		const getResponse = await springbootApi.getOrder(existingOrder.orderId);
+		const getResponse = await springbootApi.getOrder(existingOrder.id);
 		expectError(getResponse, 404);
 	});
 
 	test('當商品庫存不足時，無法建立新訂單', async ({
 		springbootApi,
 		existingAccount,
-		existingProductId,
+		existingProduct,
 	}) => {
-		// 取得現有商品的庫存量
-		const product = await springbootApi.getProduct(existingProductId);
-		const availableQuantity = expectOk(product).available ?? 0;
-
-		// 嘗試建立一個訂單數量大於庫存的訂單
+		// 直接使用 fixture 資料，無需額外查詢
 		const response = await springbootApi.createOrder({
 			accountId: existingAccount.id,
-			items: [{ productId: existingProductId, quantity: availableQuantity + 1 }],
+			items: [{ productId: existingProduct.id, quantity: existingProduct.available + 1 }],
 		});
 
 		const errorBody = expectError(response, 400);
-		expect(errorBody.message).toBe(`商品 ID ${existingProductId} 庫存不足，無法預留`);
+		expect(errorBody.message).toBe(`商品 ID ${existingProduct.id} 庫存不足，無法預留`);
 	});
 
 	test('當商品庫存不足時，無法更新訂單', async ({
 		springbootApi,
 		existingOrder,
-		existingProductId,
+		existingProduct,
 		updateOrderData,
 	}) => {
-		// 取得現有商品的庫存量
-		const product = await springbootApi.getProduct(existingProductId);
-		const availableQuantity = expectOk(product).available ?? 0;
-
 		// 取得原訂單中該商品的數量，因為更新時會先歸還庫存
-		const order = await springbootApi.getOrder(existingOrder.orderId);
-		const originalItem = expectOk(order).items?.find((i) => i.productId === existingProductId);
+		const order = await springbootApi.getOrder(existingOrder.id);
+		const originalItem = expectOk(order).items?.find((i) => i.productId === existingProduct.id);
 		const originalQuantity = originalItem?.quantity ?? 0;
 
 		// 嘗試將訂單更新為數量大於 (目前可用庫存 + 原訂單數量)
 		const response = await springbootApi.updateOrder({
-			...updateOrderData(existingOrder.orderId, existingProductId),
-			items: [{ productId: existingProductId, quantity: availableQuantity + originalQuantity + 1 }],
+			...updateOrderData(existingOrder.id, existingProduct.id),
+			items: [
+				{
+					productId: existingProduct.id,
+					quantity: existingProduct.available + originalQuantity + 1,
+				},
+			],
 		});
 
 		const errorBody = expectError(response, 400);
-		expect(errorBody.message).toBe(`商品 ID ${existingProductId} 庫存不足，無法預留`);
+		expect(errorBody.message).toBe(`商品 ID ${existingProduct.id} 庫存不足，無法預留`);
 	});
 });
