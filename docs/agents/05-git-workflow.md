@@ -85,6 +85,32 @@ updated readme  # 缺少 type
 3. 推送到遠端並創建 Pull Request
 4. 通過 CI/CD 檢查後合併
 
+## 查詢 GitHub Labels
+
+在建立 PR 時需要選擇正確的 label。可透過 PowerShell 查詢目前 repo 上的所有 labels：
+
+```powershell
+# 查詢 GitHub repo 的 labels（PowerShell）
+(Invoke-RestMethod -Uri "https://api.github.com/repos/junechen7414/Playwright/labels").name
+```
+
+**目前可用的 Labels：**
+
+| Label | 用途 |
+|-------|------|
+| `breaking-change` | API 或行為的破壞性變更 |
+| `bugfix` | 修復程式錯誤 |
+| `chore` | 建置/工具/CI 配置調整 |
+| `config` | 設定檔變更 |
+| `dependencies` | 依賴版本更新 |
+| `documentation` | 文件更新 |
+| `e2e-test` | E2E 測試相關 |
+| `enhancement` | 功能增強 |
+| `refactor` | 程式碼重構 |
+| `test` | 測試相關 |
+
+**Agent 建議流程**：建立 PR 時應根據改動性質選擇 1-2 個最相關的 labels。
+
 ## 相關文件
 
 - [開發規範](./04-development-standards.md)
