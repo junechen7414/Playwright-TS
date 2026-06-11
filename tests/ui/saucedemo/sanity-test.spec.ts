@@ -29,13 +29,13 @@ test.describe('各頁面導航流程', () => {
 		await cartPage.verifyOnCartPage();
 
 		// 測試取消結帳at checkout step one page
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.verifyOnCheckoutStepOnePage();
 		await checkoutPage.cancelCheckout();
 		await cartPage.verifyOnCartPage();
 
 		// 測試取消結帳at checkout step two page
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,
@@ -70,7 +70,7 @@ test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
 		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,
@@ -89,7 +89,7 @@ test.describe('漢堡選單從各頁面導航到 About 頁面', () => {
 		const { productPage, cartPage, checkoutPage, hamburgerMenu } = standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,
@@ -126,7 +126,7 @@ test.describe('漢堡選單從各頁面登出', () => {
 			standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,
@@ -146,7 +146,7 @@ test.describe('漢堡選單從各頁面登出', () => {
 			standardUserProductPage;
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
 			checkoutPersonData.lastName,

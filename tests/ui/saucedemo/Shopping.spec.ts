@@ -12,7 +12,7 @@ test.describe('Shopping Scenarios', () => {
 		// 流程3: 進入購物車頁面
 		await productPage.goToCartPage();
 		// 流程4: 進入結帳頁面
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		// 流程5: 填寫結帳資訊並完成訂單
 		await checkoutPage.fillCheckoutInformation(
 			checkoutPersonData.firstName,
@@ -47,7 +47,7 @@ test.describe('Shopping Scenarios', () => {
 		// 前置步驟: 將一個商品加入購物車
 		await productPage.addProductToCart(productToView);
 		await productPage.goToCartPage();
-		await cartPage.goToCheckoutPage();
+		await cartPage.goto();
 		await checkoutPage.verifyOnCheckoutStepOnePage();
 		await checkoutPage.continueCheckout();
 		await checkoutPage.verifyErrorMessageShows();
