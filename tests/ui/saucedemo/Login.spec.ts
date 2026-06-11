@@ -1,4 +1,4 @@
-import { test } from '../../../services/fixtures/chain-fixtures.fixture';
+import { test } from '@fixtures/chain-fixtures.fixture';
 
 test.describe('Unsuccessful Login Scenarios', () => {
 	test('Unsuccessful Login with Invalid Credentials, Locked out Credentials and Bypass Login Attempt', async ({

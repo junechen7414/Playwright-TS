@@ -27,6 +27,11 @@
 		"module": "esnext",
 		"moduleResolution": "bundler"
 	},
-	"include": ["tests/**/*.ts", "services/**/*.ts", "playwright.config.ts"],
+	"include": [
+		"tests/**/*.ts",
+		"services/**/*.ts",
+		"playwright.config.ts",
+		"global-setup.ts"
+	],
 	"exclude": ["node_modules", ".github", ".gitignore"]
 }

@@ -1,7 +1,8 @@
 // tests/api/springboot/account.spec.ts
+
+import { expectError, expectOk } from '@apis/base-api-client';
+import { test } from '@fixtures/springboot-chained.fixture';
 import { expect } from '@playwright/test';
-import { expectError, expectOk } from '../../../services/apis/base-api-client';
-import { test } from '../../../services/fixtures/springboot-chained.fixture';
 
 test.describe('Account 帳號管理', () => {
 	test('應該能建立新帳號', async ({ springbootApi, newAccountData }) => {

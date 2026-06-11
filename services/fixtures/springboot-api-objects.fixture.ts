@@ -1,8 +1,8 @@
+import { expectOk } from '@apis/base-api-client';
+import { SpringbootApiClient } from '@apis/springboot-api-client';
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import { expectOk } from '../apis/base-api-client';
-import { SpringbootApiClient } from '../apis/springboot-api-client';
-import { AccountStatus } from '../schema/constants';
+import { AccountStatus } from '@schema/constants';
 
 type SpringbootApiFixtures = {
 	springbootApi: SpringbootApiClient;
