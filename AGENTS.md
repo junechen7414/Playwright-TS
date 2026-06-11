@@ -36,6 +36,8 @@ This file provides guidance to agents when working with code in this repository.
 
 - **[@進階技巧](docs/agents/13-advanced-techniques.md)** - API 型別安全、網路攔截與進階功能
 - **[@疑難排解](docs/agents/14-troubleshooting.md)** - 常見問題與解決方案
+- **[@專案現代化分析](docs/project-modernization-analysis.md)** - 現代化分析報告
+- **[@專案現代化進度](docs/project-modernization-progress.md)** - 實施進度追蹤
 
 ---
 
