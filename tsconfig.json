@@ -4,8 +4,12 @@
 		"paths": {
 			"@/*": ["./*"],
 			"@tests/*": ["./tests/*"],
-			"@fixtures/*": ["./fixtures/*"],
-			"@pages/*": ["./services/pages/*"]
+			"@fixtures/*": ["./services/fixtures/*"],
+			"@pages/*": ["./services/pages/*"],
+			"@apis/*": ["./services/apis/*"],
+			"@schema/*": ["./services/schema/*"],
+			"@components/*": ["./services/components/*"],
+			"@config/*": ["./services/config/*"]
 		},
 		/* 進階檢查 */
 		"noUncheckedIndexedAccess": true,
