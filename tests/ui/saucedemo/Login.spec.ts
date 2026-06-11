@@ -15,7 +15,7 @@ test.describe('Unsuccessful Login Scenarios', () => {
 		await loginPage.verifyErrorMessage(loginErrorData.bypassLoginMessage);
 	});
 	test('Login with Problem User Credentials', async ({ problemUserPage }) => {
-		await problemUserPage.productPage.gotoProductPage();
+		await problemUserPage.productPage.goto();
 		await problemUserPage.productPage.verifyOnProductListPage();
 	});
 });

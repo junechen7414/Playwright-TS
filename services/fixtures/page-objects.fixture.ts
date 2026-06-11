@@ -21,7 +21,7 @@ type Roles = {
 
 export const pageObjectTest = baseTest.extend<PageObject & Roles>({
 	standardUserProductPage: async ({ standardUserPage }, use) => {
-		await standardUserPage.productPage.gotoProductPage();
+		await standardUserPage.productPage.goto();
 		await use(standardUserPage);
 	},
 	standardUserPage: async ({ browser }, use) => {
@@ -55,7 +55,7 @@ export const pageObjectTest = baseTest.extend<PageObject & Roles>({
 	},
 	productPage: async ({ page }, use) => {
 		const productPage = new ProductPage(page);
-		await productPage.gotoProductPage();
+		await productPage.goto();
 		await use(productPage);
 	},
 	cartPage: async ({ page }, use) => {

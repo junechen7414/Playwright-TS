@@ -76,6 +76,72 @@
 
 #### 2. 提取共用參數處理邏輯
 - 新增 `filterUndefined<T>` 私有方法
+
+**方法實作**（位於 [`springboot-api-client.ts:28-32`](../services/apis/springboot-api-client.ts:28-32)）:
+```typescript
+private filterUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+    return Object.fromEntries(
+        Object.entries(obj).filter(([_, value]) => value !== undefined),
+    ) as Partial<T>;
+}
+```
+
+**技術特點**:
+- **泛型約束**: `T extends Record<string, unknown>` 確保只接受物件型別
+- **回傳型別**: `Partial<T>` 表示所有屬性變為可選（因過濾後可能缺少某些屬性）
+- **實作邏輯**: 使用 `Object.entries` → `filter` → `Object.fromEntries` 流程過濾 `undefined` 值
+
+**使用範例**:
+
+在 [`updateAccount`](../services/apis/springboot-api-client.ts:51-54) 中:
+```typescript
+updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<ApiResult<void>> {
+    const params = this.filterUndefined(payload);
+    return this.requester.put<void>(`${this.endpoints.account}/${id}`, { data: params });
+}
+```
+
+在 [`updateProduct`](../services/apis/springboot-api-client.ts:77-82) 中:
+```typescript
+updateProduct(id: number, payload: Schemas['UpdateProductRequest']): Promise<ApiResult<void>> {
+    const { name, price, saleStatus, available } = payload;
+    const params = this.filterUndefined({ name, price, saleStatus, available });
+    return this.requester.put<void>(`${this.endpoints.product}/${id}`, { data: params });
+}
+```
+
+**遷移前後對比**:
+
+遷移前（重複的過濾邏輯）:
+```typescript
+updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<ApiResult<void>> {
+    const { name, email, phone } = payload;
+    const params = Object.fromEntries(
+        Object.entries({ name, email, phone }).filter(([_, value]) => value !== undefined),
+    );
+    return this.requester.put<void>(`${this.endpoints.account}/${id}`, { data: params });
+}
+```
+
+遷移後（使用共用方法）:
+```typescript
+updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<ApiResult<void>> {
+    const params = this.filterUndefined(payload);
+    return this.requester.put<void>(`${this.endpoints.account}/${id}`, { data: params });
+}
+```
+
+**技術優勢**:
+1. **型別推斷**: 泛型保持完整的型別資訊，IDE 可提供自動完成
+2. **型別安全**: 限制只能傳入物件型別，編譯時期就能發現錯誤
+3. **可重用性**: 適用於任何物件型別，無需為每個型別寫專用方法
+4. **DRY 原則**: 遵循 Don't Repeat Yourself，減少約 60% 的重複程式碼
+
+**實際效益**:
+- 從每個方法 3-4 行的重複過濾邏輯，簡化為 1 行方法呼叫
+- 修改過濾邏輯時只需改一處，降低維護成本
+- 可以單獨測試過濾邏輯，提高測試覆蓋率
+- 時間複雜度維持 O(n)，但程式碼更簡潔易讀
 - 使用 TypeScript 泛型確保型別安全
 
 #### 3. 重構 updateAccount 和 updateProduct
