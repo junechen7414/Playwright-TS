@@ -1,6 +1,6 @@
 import { expect, test } from '../../../services/fixtures/chain-fixtures.fixture';
 
-test('has title', async ({ standardUserProductPage }) => {
+test('驗證頁面標題', async ({ standardUserProductPage }) => {
 	await expect(standardUserProductPage.productPage.page).toHaveTitle(/Swag Labs/);
 });
 
