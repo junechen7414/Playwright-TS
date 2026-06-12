@@ -4,7 +4,7 @@
 
 - ✅ 階段 1: 基礎設施改進（已完成）
 - ✅ 階段 2: API Client 統一（已完成）
-- ⏳ 階段 3: Page Object Model 改進（待開始）
+- ✅ 階段 3: Page Object Model 改進（已完成）
 - ⏳ 階段 4: 測試與文件統一（待開始）
 
 ## ✅ 階段 1: 基礎設施改進
@@ -159,6 +159,167 @@ updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<Api
 3. **型別安全**：使用泛型確保型別推斷正確
 4. **向後相容**：不影響現有測試
 
+## ✅ 階段 3: Page Object Model 改進
+
+### 實施日期
+2026-06-11
+
+### Git 分支
+`feat/improve-page-objects`
+
+### 完成項目
+
+#### 1. 統一定位器策略
+- 優先使用 `getByRole` - 最穩健的語義化定位
+- 其次使用 `getByLabel` - 表單元素
+- 最後使用 `getByTestId` 或 class selector - 僅在無更好選擇時使用
+- ⚠️ 部分元素（如購物車徽章、購物車連結）因 DOM 結構限制，保留原有定位器並加入註解說明
+
+**改進範例**:
+
+遷移前（混用多種定位器）:
+```typescript
+// login-page.ts
+this.usernameInput = page.locator('#user-name');
+this.passwordInput = page.locator('#password');
+this.loginButton = page.locator('#login-button');
+```
+
+遷移後（優先使用語義化定位器）:
+```typescript
+// login-page.ts
+this.usernameInput = page.getByPlaceholder('Username');
+this.passwordInput = page.getByPlaceholder('Password');
+this.loginButton = page.getByRole('button', { name: 'Login' });
+```
+
+#### 2. 統一方法命名
+- 所有導航方法統一使用 `goto()` 命名
+- 移除了 `gotoProductPage()`, `goToCheckoutPage()` 等變體
+- 更新了所有測試檔案和 fixture 以使用新方法名
+
+**命名統一範例**:
+
+遷移前（命名不一致）:
+```typescript
+// product-page.ts
+async gotoProductPage() { ... }
+
+// checkout-page.ts
+async goToCheckoutPage() { ... }
+```
+
+遷移後（統一命名）:
+```typescript
+// product-page.ts
+async goto() { ... }
+
+// checkout-page.ts
+async goto() { ... }
+```
+
+#### 3. 修正驗證方法
+- 修正 `hamburger-menu.ts:40-42` 的 `verifyOnAboutPage()` 方法
+- 改用 `expect(this.page).toHaveURL(/saucelabs\.com/)` 確保正確驗證
+
+**修正範例**:
+
+遷移前（缺少 await）:
+```typescript
+async verifyOnAboutPage() {
+    expect(this.page.url()).toContain('saucelabs.com');
+}
+```
+
+遷移後（正確使用 Playwright assertion）:
+```typescript
+async verifyOnAboutPage() {
+    await expect(this.page).toHaveURL(/saucelabs\.com/);
+}
+```
+
+#### 4. 加入 JSDoc 註解
+- 為所有 Page Object 類別加入完整的類別說明
+- 為所有 public 方法加入 JSDoc 註解
+- 包含方法用途、參數說明、回傳值說明和使用範例
+
+**JSDoc 範例**:
+
+```typescript
+/**
+ * 登入頁面 Page Object
+ *
+ * 提供登入頁面的所有互動方法，包括：
+ * - 輸入使用者名稱和密碼
+ * - 執行登入操作
+ * - 驗證錯誤訊息
+ *
+ * @example
+ * ```typescript
+ * await loginPage.goto();
+ * await loginPage.login('standard_user', 'secret_sauce');
+ * ```
+ */
+export class LoginPage {
+    /**
+     * 導航到登入頁面
+     *
+     * @returns Promise that resolves when navigation is complete
+     *
+     * @example
+     * ```typescript
+     * await loginPage.goto();
+     * ```
+     */
+    async goto(): Promise<void> {
+        await this.page.goto('/');
+    }
+}
+```
+
+### 修改的檔案
+
+#### Page Objects (5 個)
+1. [`services/components/hamburger-menu.ts`](../services/components/hamburger-menu.ts) - 修正驗證方法、加入 JSDoc、統一方法命名
+2. [`services/pages/cart-page.ts`](../services/pages/cart-page.ts) - 改進定位器、統一方法命名、加入 JSDoc
+3. [`services/pages/checkout-page.ts`](../services/pages/checkout-page.ts) - 改進定位器、加入 JSDoc
+4. [`services/pages/login-page.ts`](../services/pages/login-page.ts) - 改進定位器、加入 JSDoc
+5. [`services/pages/product-page.ts`](../services/pages/product-page.ts) - 改進定位器、統一方法命名、加入 JSDoc
+
+#### Fixtures (1 個)
+6. [`services/fixtures/page-objects.fixture.ts`](../services/fixtures/page-objects.fixture.ts) - 更新方法呼叫
+
+#### 測試檔案 (3 個)
+7. [`tests/ui/saucedemo/Login.spec.ts`](../tests/ui/saucedemo/Login.spec.ts) - 更新方法呼叫
+8. [`tests/ui/saucedemo/sanity-test.spec.ts`](../tests/ui/saucedemo/sanity-test.spec.ts) - 更新方法呼叫
+9. [`tests/ui/saucedemo/Shopping.spec.ts`](../tests/ui/saucedemo/Shopping.spec.ts) - 更新方法呼叫
+
+### 驗證結果
+- ✅ 所有測試通過 (20/20)
+  - 2 個 setup 測試
+  - 18 個功能測試
+- ✅ Biome 檢查通過
+- ✅ 所有變更已提交並推送
+
+### 實際效益
+1. **可讀性提升**: 語義化定位器讓測試程式碼更易理解
+2. **可維護性提升**: 統一的命名規範降低認知負擔
+3. **穩定性提升**: `getByRole` 比 CSS selector 更穩健
+4. **文件完整性**: JSDoc 註解讓新成員更容易上手
+5. **可訪問性**: 使用 `getByRole` 同時驗證了頁面的可訪問性
+
+### 改進亮點
+- 🎯 定位器策略從混用改為有明確優先順序
+- 📚 完整的 JSDoc 註解提供了使用範例
+- 🔧 統一的 `goto()` 命名降低了學習成本
+- ✅ 修正了驗證方法的 async/await 問題
+- 🌐 提升了頁面的可訪問性（使用語義化定位器）
+
+### Git 提交記錄
+- Commit: `b7e9d20`
+- 提交訊息: "refactor: 改進 Page Object Model 設計"
+- Pull Request: https://github.com/junechen7414/Playwright-TS/pull/new/feat/improve-page-objects
+
 ## 📈 統計數據
 
 ### 階段 1
@@ -172,19 +333,18 @@ updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<Api
 - **Commits 數**：1 個
 - **程式碼變更**：+15 行 / -25 行
 
+### 階段 3
+- **修改檔案數**：9 個（5 個 Page Objects + 1 個 Fixture + 3 個測試）
+- **Commits 數**：1 個
+- **程式碼變更**：+200 行 / -80 行（主要是 JSDoc 註解）
+
 ### 總計
-- **修改檔案數**：19 個
+- **修改檔案數**：28 個
 - **新增檔案數**：2 個
-- **Commits 數**：7 個
-- **程式碼變更**：+165 行 / -105 行
+- **Commits 數**：8 個
+- **程式碼變更**：+365 行 / -185 行
 
 ## 🎯 下一步計畫
-
-### 階段 3: Page Object Model 改進（預計 2-3 天）
-- [ ] 統一定位器策略
-- [ ] 統一方法命名
-- [ ] 修正驗證方法
-- [ ] 加入 JSDoc 註解
 
 ### 階段 4: 測試與文件統一（預計 1-2 天）
 - [ ] 統一測試命名為繁體中文

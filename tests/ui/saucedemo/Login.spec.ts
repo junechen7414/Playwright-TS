@@ -1,7 +1,7 @@
 import { test } from '@fixtures/chain-fixtures.fixture';
 
-test.describe('Unsuccessful Login Scenarios', () => {
-	test('Unsuccessful Login with Invalid Credentials, Locked out Credentials and Bypass Login Attempt', async ({
+test.describe('登入失敗情境', () => {
+	test('使用無效憑證、鎖定帳號憑證和繞過登入嘗試的失敗登入', async ({
 		loginPage,
 		invalidUserData,
 		lockedOutUserData,
@@ -14,7 +14,7 @@ test.describe('Unsuccessful Login Scenarios', () => {
 		await loginPage.bypassLogin(loginErrorData.bypassUrl);
 		await loginPage.verifyErrorMessage(loginErrorData.bypassLoginMessage);
 	});
-	test('Login with Problem User Credentials', async ({ problemUserPage }) => {
+	test('使用問題使用者憑證登入', async ({ problemUserPage }) => {
 		await problemUserPage.productPage.goto();
 		await problemUserPage.productPage.verifyOnProductListPage();
 	});

@@ -1,6 +1,6 @@
 import { test } from '@fixtures/chain-fixtures.fixture';
 
-test.describe('Shopping Scenarios', () => {
+test.describe('購物情境', () => {
 	test('完整流程從購物到結帳', async ({
 		standardUserProductPage,
 		productsToAdd,
