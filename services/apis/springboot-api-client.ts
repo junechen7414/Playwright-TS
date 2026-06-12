@@ -1,6 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
 import type { components, PageResponse } from '@schema/api-types';
-import { type ApiError, ApiRequester, type ApiResult } from './base-api-client';
+import { ApiRequester, type ApiResult } from './base-api-client';
 
 type Schemas = components['schemas'];
 
@@ -21,6 +21,17 @@ export class SpringbootApiClient {
 	};
 
 	/**
+	 * 過濾掉 undefined 的屬性
+	 * @param obj - 要過濾的物件
+	 * @returns 過濾後的物件
+	 */
+	private filterUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+		return Object.fromEntries(
+			Object.entries(obj).filter(([_, value]) => value !== undefined),
+		) as Partial<T>;
+	}
+
+	/**
 	 * Account 相關操作
 	 */
 	createAccount(payload: Schemas['CreateAccountRequest']): Promise<ApiResult<number>> {
@@ -38,14 +49,12 @@ export class SpringbootApiClient {
 	}
 
 	updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<ApiResult<void>> {
-		const params: Record<string, string | number | boolean> = {};
-		if (payload.name) params.name = payload.name;
-		if (payload.status) params.status = payload.status;
+		const params = this.filterUndefined(payload);
 		return this.requester.put<void>(`${this.endpoints.account}/${id}`, { data: params });
 	}
 
-	deleteAccount(id: number): Promise<ApiResult<undefined | ApiError>> {
-		return this.requester.delete<undefined | ApiError>(`${this.endpoints.account}/${id}`);
+	deleteAccount(id: number): Promise<ApiResult<void>> {
+		return this.requester.delete<void>(`${this.endpoints.account}/${id}`);
 	}
 
 	/**
@@ -66,12 +75,9 @@ export class SpringbootApiClient {
 	}
 
 	updateProduct(id: number, payload: Schemas['UpdateProductRequest']): Promise<ApiResult<void>> {
-		const params: Record<string, string | number | boolean> = {
-			price: payload.price,
-			saleStatus: payload.saleStatus,
-			available: payload.available,
-		};
-		if (payload.name) params.name = payload.name;
+		// 排除不屬於 schema 的欄位（如 id）
+		const { name, price, saleStatus, available } = payload;
+		const params = this.filterUndefined({ name, price, saleStatus, available });
 		return this.requester.put<void>(`${this.endpoints.product}/${id}`, { data: params });
 	}
 
