@@ -1,4 +1,4 @@
-import { test } from '../../../services/fixtures/chain-fixtures.fixture';
+import { test } from '@fixtures/chain-fixtures.fixture';
 
 test.describe('登入失敗情境', () => {
 	test('使用無效憑證、鎖定帳號憑證和繞過登入嘗試的失敗登入', async ({

@@ -1,50 +1,106 @@
 // tests/api/springboot/account.spec.ts
-import { expect } from '@playwright/test';
-import { expectError, expectOk } from '../../../services/apis/base-api-client';
-import { test } from '../../../services/fixtures/springboot-chained.fixture';
 
-test.describe('Account 帳號管理', () => {
-	test('應該能建立新帳號', async ({ springbootApi, newAccountData }) => {
+import { expectError, expectOk } from '@apis/base-api-client';
+import { test } from '@fixtures/springboot-chained.fixture';
+import { expect } from '@playwright/test';
+import { AccountStatus } from '@schema/constants';
+
+test.describe('Account 帳戶管理', () => {
+	test('應該能建立新帳戶', async ({ springbootApi, newAccountData }) => {
 		const response = await springbootApi.createAccount(newAccountData);
 		const accountId = expectOk(response);
 
 		expect(typeof accountId).toBe('number');
+		expect(accountId).toBeGreaterThan(0);
 	});
 
-	test('應該能取得帳號詳情', async ({ springbootApi, existingAccount }) => {
+	test('應該能查詢帳戶詳細資訊', async ({ springbootApi, existingAccount }) => {
 		const response = await springbootApi.getAccount(existingAccount.id);
-		const data = expectOk(response);
+		const account = expectOk(response);
 
-		expect.soft(data).toMatchObject({
-			name: existingAccount.name,
-			status: existingAccount.status,
-		});
+		expect(account.name).toBe(existingAccount.name);
+		expect(account.status).toBe(AccountStatus.Active);
 	});
 
-	test('應該能更新帳號', async ({ springbootApi, existingAccount, updateAccountData }) => {
-		const response = await springbootApi.updateAccount(
-			existingAccount.id,
-			updateAccountData(existingAccount),
-		);
+	test('應該能更新帳戶資訊', async ({ springbootApi, existingAccount, updateAccountData }) => {
+		const updatePayload = {
+			...updateAccountData,
+			name: '更新後的帳戶名稱',
+		};
+
+		const response = await springbootApi.updateAccount(existingAccount.id, updatePayload);
 		expectOk(response);
+
+		// 驗證更新成功
+		const getResponse = await springbootApi.getAccount(existingAccount.id);
+		const updatedAccount = expectOk(getResponse);
+		expect(updatedAccount.name).toBe('更新後的帳戶名稱');
 	});
 
-	test('應該能刪除帳號', async ({ springbootApi, existingAccount }) => {
+	test('應該能刪除帳戶', async ({ springbootApi, existingAccount }) => {
 		const response = await springbootApi.deleteAccount(existingAccount.id);
 		expectOk(response);
 
+		// 驗證刪除成功（查詢應該回傳 404）
 		const getResponse = await springbootApi.getAccount(existingAccount.id);
 		expectError(getResponse, 404);
 	});
 
-	test('當帳號有關聯訂單時，不應該能刪除帳號', async ({ springbootApi, existingOrder }) => {
-		const response = await springbootApi.deleteAccount(existingOrder.accountId);
+	test('應該能查詢帳戶列表（預設分頁）', async ({ springbootApi }) => {
+		const response = await springbootApi.listAccounts();
+		const pageResponse = expectOk(response);
+
+		// 驗證分頁回應結構
+		expect(pageResponse).toHaveProperty('content');
+		expect(pageResponse).toHaveProperty('page');
+		expect(pageResponse).toHaveProperty('size');
+		expect(pageResponse).toHaveProperty('totalElements');
+		expect(pageResponse).toHaveProperty('totalPages');
+		expect(Array.isArray(pageResponse.content)).toBeTruthy();
+		expect(pageResponse.content.length).toBeGreaterThan(0);
+	});
+
+	test('應該能使用分頁參數查詢帳戶列表', async ({ springbootApi }) => {
+		// 使用分頁參數查詢
+		const response = await springbootApi.listAccounts({
+			page: 0,
+			size: 5,
+			sort: 'id,desc',
+		});
+		const pageResponse = expectOk(response);
+
+		// 驗證分頁參數生效
+		expect(pageResponse.size).toBe(5);
+		expect(pageResponse.page).toBe(0);
+		expect(pageResponse.content.length).toBeLessThanOrEqual(5);
+
+		// 驗證排序（ID 降冪）
+		if (pageResponse.content.length > 1) {
+			const ids = pageResponse.content.map((account) => account.id);
+			for (let i = 0; i < ids.length - 1; i++) {
+				expect(ids[i]).toBeGreaterThanOrEqual(ids[i + 1] ?? 0);
+			}
+		}
+	});
+
+	test('當帳戶有關聯訂單時，無法刪除', async ({ springbootApi, existingAccountWithOrders }) => {
+		const response = await springbootApi.deleteAccount(existingAccountWithOrders.id);
 		const errorBody = expectError(response, 400);
 
-		expect(errorBody).toMatchObject({
-			status: 400,
-			error: '帳戶仍有訂單，無法刪除',
+		expect(errorBody.message).toContain('has associated orders');
+	});
+
+	test('當帳戶有關聯訂單時，無法將狀態改為停用', async ({
+		springbootApi,
+		existingAccountWithOrders,
+		updateAccountData,
+	}) => {
+		const response = await springbootApi.updateAccount(existingAccountWithOrders.id, {
+			...updateAccountData,
+			status: AccountStatus.Inactive,
 		});
-		expect(errorBody.message).toContain(`Account with id: ${existingOrder.accountId}`);
+
+		const errorBody = expectError(response, 400);
+		expect(errorBody.message).toContain('has associated orders');
 	});
 });

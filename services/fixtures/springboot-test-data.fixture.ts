@@ -1,15 +1,13 @@
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import type { components } from '../schema/api-types';
-import { AccountStatus, OrderStatus, ProductSaleStatus } from '../schema/constants';
+import type { components } from '@schema/api-types';
+import { AccountStatus, OrderStatus, ProductSaleStatus } from '@schema/constants';
 
 type SpringbootDataFixtures = {
 	newAccountData: components['schemas']['CreateAccountRequest'];
-	updateAccountData: (
-		existingAccount: components['schemas']['UpdateAccountRequest'],
-	) => components['schemas']['UpdateAccountRequest'];
+	updateAccountData: components['schemas']['UpdateAccountRequest'];
 	newProductData: components['schemas']['CreateProductRequest'];
-	updateProductData: (existingProductId: number) => components['schemas']['UpdateProductRequest'];
+	updateProductData: components['schemas']['UpdateProductRequest'];
 	newOrderData: (
 		accountId: number,
 		productId: number,
@@ -29,10 +27,10 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	},
 	// 更新帳號的資料
 	updateAccountData: async ({}, use) => {
-		await use(() => ({
+		await use({
 			name: faker.person.fullName(),
 			status: AccountStatus.Active,
-		}));
+		});
 	},
 
 	// 建立新商品的資料
@@ -45,13 +43,12 @@ export const springbootTestData = baseTest.extend<SpringbootDataFixtures>({
 	},
 	// 更新商品的資料
 	updateProductData: async ({}, use) => {
-		await use((existingProductId) => ({
-			id: existingProductId,
+		await use({
 			name: `Updated_Product_${faker.number.int({ min: 1, max: 100 })}`,
 			price: faker.number.int({ min: 10, max: 1000 }),
 			available: faker.number.int({ min: 1, max: 100 }),
 			saleStatus: ProductSaleStatus.Available,
-		}));
+		});
 	},
 
 	// 建立新訂單的資料

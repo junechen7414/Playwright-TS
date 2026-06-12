@@ -1,15 +1,31 @@
+/**
+ * 帳戶狀態
+ */
 export enum AccountStatus {
-  Active = 'Y',
-  Inactive = 'N',
+	/** 啟用 */
+	Active = 'Y',
+	/** 停用 */
+	Inactive = 'N',
 }
 
+/**
+ * 商品銷售狀態
+ */
 export enum ProductSaleStatus {
-  Available = 1001,
-  Inactive = 1002,
+	/** 可銷售 */
+	Available = 1001,
+	/** 停售 */
+	Inactive = 1002,
 }
 
+/**
+ * 訂單狀態
+ */
 export enum OrderStatus {
-  Pending = 1001,
-  Completed = 1002,
-  Cancelled = 1003,
+	/** 待處理 */
+	Pending = 1001,
+	/** 已完成 */
+	Completed = 1002,
+	/** 已取消 */
+	Cancelled = 1003,
 }

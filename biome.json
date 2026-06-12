@@ -20,8 +20,8 @@
 			"nursery": {
 				"noFloatingPromises": "error"
 			},
-			"correctness":{
-				"noEmptyPattern":"off"
+			"correctness": {
+				"noEmptyPattern": "off"
 			}
 		}
 	},

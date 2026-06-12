@@ -1,9 +1,9 @@
+import { HamburgerMenu } from '@components/hamburger-menu';
+import { CartPage } from '@pages/cart-page';
+import { CheckoutPage } from '@pages/checkout-page';
+import { LoginPage } from '@pages/login-page';
+import { ProductPage } from '@pages/product-page';
 import { test as baseTest } from '@playwright/test';
-import { HamburgerMenu } from '../components/hamburger-menu';
-import { CartPage } from '../pages/cart-page';
-import { CheckoutPage } from '../pages/checkout-page';
-import { LoginPage } from '../pages/login-page';
-import { ProductPage } from '../pages/product-page';
 
 export type PageObject = {
 	loginPage: LoginPage;

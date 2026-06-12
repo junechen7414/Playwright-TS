@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import type { components, PageResponse } from '../schema/api-types';
+import type { components, PageResponse } from '@schema/api-types';
 import { ApiRequester, type ApiResult } from './base-api-client';
 
 type Schemas = components['schemas'];
@@ -44,8 +44,15 @@ export class SpringbootApiClient {
 		);
 	}
 
-	listAccounts(): Promise<ApiResult<Schemas['GetAccountListResponse'][]>> {
-		return this.requester.get<Schemas['GetAccountListResponse'][]>(`${this.endpoints.account}`);
+	listAccounts(params?: {
+		page?: number;
+		size?: number;
+		sort?: string;
+	}): Promise<ApiResult<PageResponse<Schemas['GetAccountListResponse']>>> {
+		return this.requester.get<PageResponse<Schemas['GetAccountListResponse']>>(
+			`${this.endpoints.account}`,
+			params ? { params } : undefined,
+		);
 	}
 
 	updateAccount(id: number, payload: Schemas['UpdateAccountRequest']): Promise<ApiResult<void>> {
@@ -70,8 +77,15 @@ export class SpringbootApiClient {
 		);
 	}
 
-	listProducts(): Promise<ApiResult<Schemas['GetProductListResponse'][]>> {
-		return this.requester.get<Schemas['GetProductListResponse'][]>(`${this.endpoints.product}`);
+	listProducts(params?: {
+		page?: number;
+		size?: number;
+		sort?: string;
+	}): Promise<ApiResult<PageResponse<Schemas['GetProductListResponse']>>> {
+		return this.requester.get<PageResponse<Schemas['GetProductListResponse']>>(
+			`${this.endpoints.product}`,
+			params ? { params } : undefined,
+		);
 	}
 
 	updateProduct(id: number, payload: Schemas['UpdateProductRequest']): Promise<ApiResult<void>> {
