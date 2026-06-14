@@ -98,8 +98,10 @@ updated readme  # 缺少 type
 4. BOB 會自動：
    - 分析 commit 歷史
    - 生成 PR 標題和描述
-   - 選擇適當的 labels
    - 建立 Pull Request
+5. **重要**：建立 PR 後，請根據變更類型手動添加適當的 labels（參考下方「Labels 選擇」章節）
+
+> **注意**：目前 `/create-pr` 指令尚未支援自動添加 labels，需要在 GitHub 網頁上手動添加。未來版本可能會加入此功能。
 
 ### 手動建立 PR
 
