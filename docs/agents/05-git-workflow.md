@@ -84,6 +84,70 @@ updated readme  # 缺少 type
 2. 進行開發並定期 commit
 3. 推送到遠端並創建 Pull Request
 4. 通過 CI/CD 檢查後合併
+5. 合併後清理本地和遠端分支
+
+## 分支清理
+
+### 合併後的清理流程
+
+當 Pull Request 被合併到 `main` 後，應該清理本地和遠端的 feature 分支。
+
+### PowerShell 指令
+
+PowerShell 使用分號 (`;`) 來串接多個指令：
+
+```powershell
+# 切換回 main 分支並更新
+git checkout main; git pull
+
+# 刪除本地分支
+git branch -d <branch-name>
+
+# 刪除遠端分支（如果需要）
+git push origin --delete <branch-name>
+```
+
+**完整範例**：
+
+```powershell
+# 假設要清理 feature/add-login-page 分支
+git checkout main; git pull; git branch -d feature/add-login-page
+
+# 如果遠端分支還存在，也一併刪除
+git push origin --delete feature/add-login-page
+```
+
+### CMD 指令
+
+CMD 使用 `&&` 來串接多個指令：
+
+```cmd
+REM 切換回 main 分支並更新
+git checkout main && git pull
+
+REM 刪除本地分支
+git branch -d <branch-name>
+
+REM 刪除遠端分支（如果需要）
+git push origin --delete <branch-name>
+```
+
+**完整範例**：
+
+```cmd
+REM 假設要清理 feature/add-login-page 分支
+git checkout main && git pull && git branch -d feature/add-login-page
+
+REM 如果遠端分支還存在，也一併刪除
+git push origin --delete feature/add-login-page
+```
+
+### 清理注意事項
+
+- ✅ 確認 PR 已經合併後再刪除分支
+- ✅ 使用 `-d` 參數（小寫）進行安全刪除，如果分支未合併會提示警告
+- ✅ 如果確定要強制刪除未合併的分支，使用 `-D` 參數（大寫）
+- ⚠️ 刪除遠端分支前，確認其他團隊成員不再需要該分支
 
 ## 查詢 GitHub Labels
 
