@@ -86,6 +86,56 @@ updated readme  # 缺少 type
 4. 通過 CI/CD 檢查後合併
 5. 合併後清理本地和遠端分支
 
+## 建立 Pull Request
+
+### 使用 BOB IDE 的 Slash Command
+
+如果您在 BOB IDE 或支援的 shell 環境中工作，可以使用 `/create-pr` slash command 快速建立 PR：
+
+1. 確保已推送分支到遠端
+2. 切換到 **Advanced** mode
+3. 使用指令：`/create-pr`
+4. BOB 會自動：
+   - 分析 commit 歷史
+   - 生成 PR 標題和描述
+   - 選擇適當的 labels
+   - 建立 Pull Request
+
+### 手動建立 PR
+
+如果不在 BOB IDE 環境中，或 `/create-pr` command 不可用，請使用以下方式：
+
+#### 方式一：透過 Git 推送訊息中的連結
+
+推送分支後，Git 會在終端機輸出中提供建立 PR 的連結：
+
+```
+remote: Create a pull request for 'feature/your-branch' on GitHub by visiting:
+remote:      https://github.com/junechen7414/Playwright-TS/pull/new/feature/your-branch
+```
+
+直接點擊或複製該連結到瀏覽器即可建立 PR。
+
+#### 方式二：透過 GitHub 網頁介面
+
+1. 前往專案的 GitHub 頁面
+2. 點擊 **Pull requests** 標籤
+3. 點擊 **New pull request** 按鈕
+4. 選擇您的分支
+5. 填寫 PR 標題和描述
+6. 選擇適當的 labels（參考下方「查詢 GitHub Labels」章節）
+7. 點擊 **Create pull request**
+
+### PR 標題和描述建議
+
+- **標題格式**：遵循 Conventional Commits 格式
+  - 範例：`feat(auth): add login functionality`
+- **描述內容**：
+  - 簡述變更內容
+  - 列出主要修改項目
+  - 如有相關 issue，使用 `Closes #123` 連結
+  - 如有破壞性變更，明確標註 `BREAKING CHANGE`
+
 ## 分支清理
 
 ### 合併後的清理流程
