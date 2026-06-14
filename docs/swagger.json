@@ -1,1313 +1,1385 @@
 {
-	"openapi": "3.1.0",
-	"info": {
-		"title": "OpenAPI definition",
-		"version": "v0"
-	},
-	"servers": [
-		{
-			"url": "http://localhost:8787",
-			"description": "Generated server url"
-		}
-	],
-	"tags": [
-		{
-			"name": "Account",
-			"description": "帳戶管理 API"
-		},
-		{
-			"name": "Order",
-			"description": "訂單管理 API"
-		},
-		{
-			"name": "Product",
-			"description": "商品管理 API"
-		}
-	],
-	"paths": {
-		"/product/{id}": {
-			"get": {
-				"tags": ["Product"],
-				"summary": "獲取單一商品詳細資訊",
-				"description": "根據 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將回傳 NotFound。",
-				"operationId": "getProductDetail",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "商品 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得商品詳細資訊",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/GetProductDetailResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "商品不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"tags": ["Product"],
-				"summary": "更新商品",
-				"description": "更新現有商品資訊。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 ProductAlreadyExistException。",
-				"operationId": "updateProduct",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "商品 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateProductRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "更新成功"
-					},
-					"400": {
-						"description": "參數驗證失敗或商品名稱已存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "商品不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"tags": ["Product"],
-				"summary": "刪除商品",
-				"description": "執行商品軟刪除。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。",
-				"operationId": "deleteProduct",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "商品 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "刪除成功"
-					},
-					"404": {
-						"description": "商品不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/order": {
-			"put": {
-				"tags": ["Order"],
-				"summary": "更新訂單內容",
-				"description": "更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 InvalidRequestException），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單狀態與明細。",
-				"operationId": "updateOrder",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateOrderRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "更新成功"
-					},
-					"400": {
-						"description": "參數驗證失敗、重複商品或庫存不足",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "訂單不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"post": {
-				"tags": ["Order"],
-				"summary": "建立新訂單",
-				"description": "建立新訂單。先驗證帳戶是否啟用（不啟用則拋出 AccountInactiveException），檢查訂單內是否有重複商品（重複則拋出 InvalidRequestException），最後透過商品服務處理庫存（若狀態不可銷售或庫存不足由商品服務拋出異常）。成功則新增訂單主檔（預設狀態 1001）與明細。",
-				"operationId": "createOrder",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateOrderRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "建立成功，回傳訂單 ID",
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int32"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "參數驗證失敗、帳戶未啟用、重複商品或庫存不足",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "帳戶或商品不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/account/{id}": {
-			"get": {
-				"tags": ["Account"],
-				"summary": "獲取帳戶詳細資訊",
-				"description": "根據 ID 獲取帳戶詳細資訊。受限於 SQLRestriction 規則，若帳戶不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。",
-				"operationId": "getAccountDetail",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "帳戶 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得帳戶詳細資訊",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/GetAccountDetailResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "帳戶不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"tags": ["Account"],
-				"summary": "更新帳戶",
-				"description": "更新現有帳戶資訊。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若欲將狀態從啟用 \u0027Y\u0027 變更為停用 \u0027N\u0027，會先檢查該帳戶是否仍有關聯訂單，若有則拋出 AccountStillHasOrderCanNotBeDeleteException。",
-				"operationId": "updateAccount",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "帳戶 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateAccountRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "更新成功"
-					},
-					"400": {
-						"description": "參數驗證失敗或帳戶仍有關聯訂單",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "帳戶不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"tags": ["Account"],
-				"summary": "刪除帳戶",
-				"description": "執行帳戶軟刪除。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若該帳戶仍有關聯訂單，則拋出 AccountStillHasOrderCanNotBeDeleteException。",
-				"operationId": "deleteAccount",
-				"parameters": [
-					{
-						"name": "id",
-						"in": "path",
-						"description": "帳戶 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "刪除成功"
-					},
-					"400": {
-						"description": "帳戶仍有關聯訂單，無法刪除",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "帳戶不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/product": {
-			"get": {
-				"tags": ["Product"],
-				"summary": "獲取商品列表（分頁）",
-				"description": "獲取所有商品的分頁列表。受限於 SQLRestriction 規則，僅會回傳未被軟刪除且銷售狀態為 1001 (AVAILABLE) 的商品。",
-				"operationId": "getProductList",
-				"parameters": [
-					{
-						"name": "pageable",
-						"in": "query",
-						"description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
-						"required": true,
-						"schema": {
-							"$ref": "#/components/schemas/Pageable"
-						},
-						"example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得商品分頁列表",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/PageResponseGetProductListResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"post": {
-				"tags": ["Product"],
-				"summary": "新增商品",
-				"description": "建立新商品。若已存在同名商品則拋出 ProductAlreadyExistException。成功則新增商品資料，預設銷售狀態為 1001 (AVAILABLE)。",
-				"operationId": "createProduct",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateProductRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "建立成功，回傳商品 ID",
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int32"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "參數驗證失敗或商品名稱已存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/product/processOrderItems": {
-			"post": {
-				"tags": ["Product"],
-				"summary": "處理訂單中的商品庫存",
-				"description": "內部使用：處理訂單建立/更新時的商品庫存扣除與歸還。",
-				"operationId": "processOrderItems",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ProcessOrderItemsRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "處理成功"
-					}
-				}
-			}
-		},
-		"/account": {
-			"get": {
-				"tags": ["Account"],
-				"summary": "獲取帳戶列表（分頁）",
-				"description": "獲取所有帳戶的分頁列表。受限於 SQLRestriction 規則，僅會回傳未軟刪除且狀態為啟用 \u0027Y\u0027 的帳戶。",
-				"operationId": "getAccountList",
-				"parameters": [
-					{
-						"name": "pageable",
-						"in": "query",
-						"description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
-						"required": true,
-						"schema": {
-							"$ref": "#/components/schemas/Pageable"
-						},
-						"example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得帳戶分頁列表",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/PageResponseGetAccountListResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"post": {
-				"tags": ["Account"],
-				"summary": "建立新帳戶",
-				"description": "建立新帳戶。成功則新增帳戶資料，預設狀態為啟用 \u0027Y\u0027。",
-				"operationId": "createAccount",
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateAccountRequest"
-							}
-						}
-					},
-					"required": true
-				},
-				"responses": {
-					"200": {
-						"description": "建立成功，回傳帳戶 ID",
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "integer",
-									"format": "int32"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "參數驗證失敗",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/product/batch": {
-			"get": {
-				"tags": ["Product"],
-				"summary": "批量獲取商品詳細資訊",
-				"description": "根據多個 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，該 ID 將被忽略。",
-				"operationId": "getProductBatch",
-				"parameters": [
-					{
-						"name": "ids",
-						"in": "query",
-						"description": "商品 ID 集合（逗號分隔）",
-						"required": true,
-						"schema": {
-							"type": "array",
-							"items": {
-								"type": "integer",
-								"format": "int32"
-							},
-							"uniqueItems": true
-						},
-						"example": "1,2,3"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得商品詳細資訊列表",
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "array",
-									"items": {
-										"$ref": "#/components/schemas/GetProductDetailResponse"
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/order/{orderId}": {
-			"get": {
-				"tags": ["Order"],
-				"summary": "獲取訂單詳細資訊",
-				"description": "獲取指定訂單的詳細資訊。受限於SQLRestriction規則，若訂單不存在、已被軟刪除或狀態非 1001 (CREATED)，將回傳 NotFound。",
-				"operationId": "getOrderDetails",
-				"parameters": [
-					{
-						"name": "orderId",
-						"in": "path",
-						"description": "訂單 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得訂單詳細資訊",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/GetOrderDetailResponse"
-								}
-							}
-						}
-					},
-					"404": {
-						"description": "訂單不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"tags": ["Order"],
-				"summary": "刪除訂單",
-				"description": "刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會對訂單主檔與明細進行軟刪除，並透過商品服務歸還商品庫存。",
-				"operationId": "deleteOrder",
-				"parameters": [
-					{
-						"name": "orderId",
-						"in": "path",
-						"description": "訂單 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"204": {
-						"description": "刪除成功"
-					},
-					"404": {
-						"description": "訂單不存在",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiErrorResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/order/account/{accountId}": {
-			"get": {
-				"tags": ["Order"],
-				"summary": "獲取帳戶訂單清單（分頁）",
-				"description": "獲取該帳戶的所有有效訂單分頁清單。受限於SQLRestriction規則，僅會回傳未被軟刪除且狀態為 1001 (CREATED) 的訂單。",
-				"operationId": "getOrderList",
-				"parameters": [
-					{
-						"name": "accountId",
-						"in": "path",
-						"description": "帳戶 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					},
-					{
-						"name": "pageable",
-						"in": "query",
-						"description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
-						"required": true,
-						"schema": {
-							"$ref": "#/components/schemas/Pageable"
-						},
-						"example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "成功取得訂單分頁列表",
-						"content": {
-							"*/*": {
-								"schema": {
-									"$ref": "#/components/schemas/PageResponseGetOrderListResponse"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/order/account/{accountId}/exists": {
-			"get": {
-				"tags": ["Order"],
-				"summary": "檢查帳戶ID是否存在於任何有效訂單中",
-				"description": "判斷帳戶是否有關聯的有效訂單，用於帳戶更新與刪除時的檢核。受限於系統規則，僅會針對未軟刪除且狀態為 1001 (CREATED) 的訂單進行判定。",
-				"operationId": "AccountIdIsInOrder",
-				"parameters": [
-					{
-						"name": "accountId",
-						"in": "path",
-						"description": "帳戶 ID",
-						"required": true,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
-						"example": 1
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "回傳布林值，true 表示有關聯訂單",
-						"content": {
-							"*/*": {
-								"schema": {
-									"type": "boolean"
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	},
-	"components": {
-		"schemas": {
-			"UpdateProductRequest": {
-				"type": "object",
-				"description": "更新商品請求",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "商品名稱",
-						"example": "商品A",
-						"maxLength": 100,
-						"minLength": 0
-					},
-					"price": {
-						"type": "number",
-						"description": "商品價格",
-						"example": 250.0
-					},
-					"saleStatus": {
-						"type": "integer",
-						"format": "int32",
-						"description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
-						"example": 1001
-					},
-					"available": {
-						"type": "integer",
-						"format": "int32",
-						"description": "可用庫存數量",
-						"example": 100
-					}
-				},
-				"required": ["available", "name", "price", "saleStatus"]
-			},
-			"ApiErrorResponse": {
-				"type": "object",
-				"properties": {
-					"timestamp": {
-						"type": "string",
-						"format": "date-time"
-					},
-					"status": {
-						"type": "integer",
-						"format": "int32"
-					},
-					"error": {
-						"type": "string"
-					},
-					"message": {
-						"type": "string"
-					}
-				}
-			},
-			"UpdateOrderDetailRequest": {
-				"type": "object",
-				"description": "更新訂單明細請求",
-				"properties": {
-					"productId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"quantity": {
-						"type": "integer",
-						"format": "int32",
-						"description": "購買數量",
-						"example": 3
-					}
-				},
-				"required": ["productId", "quantity"]
-			},
-			"UpdateOrderRequest": {
-				"type": "object",
-				"description": "更新訂單請求",
-				"properties": {
-					"orderId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "訂單 ID",
-						"example": 1
-					},
-					"orderStatus": {
-						"type": "integer",
-						"format": "int32",
-						"description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
-						"example": 1001
-					},
-					"items": {
-						"type": "array",
-						"description": "訂單明細項目列表",
-						"items": {
-							"$ref": "#/components/schemas/UpdateOrderDetailRequest"
-						},
-						"minItems": 1
-					}
-				},
-				"required": ["items", "orderId", "orderStatus"]
-			},
-			"UpdateAccountRequest": {
-				"type": "object",
-				"description": "更新帳戶請求",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "帳戶名稱",
-						"example": "Bobby",
-						"maxLength": 50,
-						"minLength": 0
-					},
-					"status": {
-						"type": "string",
-						"description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
-						"enum": ["Y", "N"],
-						"example": "Y",
-						"minLength": 1,
-						"pattern": "^[YN]$"
-					}
-				},
-				"required": ["name", "status"]
-			},
-			"CreateProductRequest": {
-				"type": "object",
-				"description": "建立商品請求",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "商品名稱",
-						"example": "商品A",
-						"maxLength": 100,
-						"minLength": 0
-					},
-					"price": {
-						"type": "number",
-						"description": "商品價格",
-						"example": 250.0
-					},
-					"available": {
-						"type": "integer",
-						"format": "int32",
-						"description": "可用庫存數量",
-						"example": 100
-					}
-				},
-				"required": ["available", "name", "price"]
-			},
-			"OrderItemRequest": {
-				"type": "object",
-				"description": "訂單項目請求（內部使用）",
-				"properties": {
-					"productId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"quantity": {
-						"type": "integer",
-						"format": "int32",
-						"description": "購買數量",
-						"example": 2
-					}
-				}
-			},
-			"ProcessOrderItemsRequest": {
-				"type": "object",
-				"description": "處理訂單項目請求（內部使用）",
-				"properties": {
-					"originalItems": {
-						"type": "array",
-						"description": "原始訂單項目集合",
-						"items": {
-							"$ref": "#/components/schemas/OrderItemRequest"
-						},
-						"uniqueItems": true
-					},
-					"updatedItems": {
-						"type": "array",
-						"description": "更新後的訂單項目集合",
-						"items": {
-							"$ref": "#/components/schemas/OrderItemRequest"
-						},
-						"uniqueItems": true
-					}
-				}
-			},
-			"CreateOrderDetailRequest": {
-				"type": "object",
-				"description": "建立訂單明細請求",
-				"properties": {
-					"productId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"quantity": {
-						"type": "integer",
-						"format": "int32",
-						"description": "購買數量",
-						"example": 2
-					}
-				},
-				"required": ["productId", "quantity"]
-			},
-			"CreateOrderRequest": {
-				"type": "object",
-				"description": "建立訂單請求",
-				"properties": {
-					"accountId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "帳戶 ID",
-						"example": 1
-					},
-					"items": {
-						"type": "array",
-						"description": "訂單明細項目列表",
-						"items": {
-							"$ref": "#/components/schemas/CreateOrderDetailRequest"
-						},
-						"minItems": 1
-					}
-				},
-				"required": ["accountId", "items"]
-			},
-			"CreateAccountRequest": {
-				"type": "object",
-				"description": "建立帳戶請求",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "帳戶名稱",
-						"example": "Bobby",
-						"maxLength": 50,
-						"minLength": 0
-					}
-				},
-				"required": ["name"]
-			},
-			"Pageable": {
-				"type": "object",
-				"properties": {
-					"page": {
-						"type": "integer",
-						"format": "int32",
-						"minimum": 0
-					},
-					"size": {
-						"type": "integer",
-						"format": "int32",
-						"minimum": 1
-					},
-					"sort": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					}
-				}
-			},
-			"GetProductListResponse": {
-				"type": "object",
-				"description": "商品列表回應",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"name": {
-						"type": "string",
-						"description": "商品名稱",
-						"example": "商品A"
-					},
-					"price": {
-						"type": "number",
-						"description": "商品價格",
-						"example": 250.0
-					},
-					"saleStatus": {
-						"type": "integer",
-						"format": "int32",
-						"description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
-						"example": 1001
-					},
-					"available": {
-						"type": "integer",
-						"format": "int32",
-						"description": "可用庫存數量",
-						"example": 100
-					}
-				}
-			},
-			"PageResponseGetProductListResponse": {
-				"type": "object",
-				"description": "分頁回應",
-				"properties": {
-					"content": {
-						"type": "array",
-						"description": "資料內容",
-						"items": {
-							"$ref": "#/components/schemas/GetProductListResponse"
-						}
-					},
-					"page": {
-						"type": "integer",
-						"format": "int32",
-						"description": "當前頁碼（從 0 開始）",
-						"example": 0
-					},
-					"size": {
-						"type": "integer",
-						"format": "int32",
-						"description": "每頁筆數",
-						"example": 20
-					},
-					"totalElements": {
-						"type": "integer",
-						"format": "int64",
-						"description": "總筆數",
-						"example": 100
-					},
-					"totalPages": {
-						"type": "integer",
-						"format": "int32",
-						"description": "總頁數",
-						"example": 5
-					}
-				}
-			},
-			"GetProductDetailResponse": {
-				"type": "object",
-				"description": "商品詳細資訊回應",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"name": {
-						"type": "string",
-						"description": "商品名稱",
-						"example": "商品A"
-					},
-					"price": {
-						"type": "number",
-						"description": "商品價格",
-						"example": 250.0
-					},
-					"saleStatus": {
-						"type": "integer",
-						"format": "int32",
-						"description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
-						"example": 1001
-					},
-					"available": {
-						"type": "integer",
-						"format": "int32",
-						"description": "可用庫存數量",
-						"example": 100
-					}
-				}
-			},
-			"GetOrderDetailResponse": {
-				"type": "object",
-				"description": "訂單詳細資訊回應",
-				"properties": {
-					"accountId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "帳戶 ID",
-						"example": 1
-					},
-					"orderStatus": {
-						"type": "integer",
-						"format": "int32",
-						"description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
-						"example": 1001
-					},
-					"totalAmount": {
-						"type": "number",
-						"description": "訂單總金額",
-						"example": 500.0
-					},
-					"items": {
-						"type": "array",
-						"description": "訂單明細項目列表",
-						"items": {
-							"$ref": "#/components/schemas/OrderItemDTO"
-						}
-					}
-				}
-			},
-			"OrderItemDTO": {
-				"type": "object",
-				"description": "訂單明細項目",
-				"properties": {
-					"productId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "商品 ID",
-						"example": 1
-					},
-					"productName": {
-						"type": "string",
-						"description": "商品名稱",
-						"example": "商品A"
-					},
-					"quantity": {
-						"type": "integer",
-						"format": "int32",
-						"description": "購買數量",
-						"example": 2
-					},
-					"productPrice": {
-						"type": "number",
-						"description": "商品單價",
-						"example": 250.0
-					}
-				}
-			},
-			"GetOrderListResponse": {
-				"type": "object",
-				"description": "訂單列表回應",
-				"properties": {
-					"orderId": {
-						"type": "integer",
-						"format": "int32",
-						"description": "訂單 ID",
-						"example": 1
-					},
-					"status": {
-						"type": "integer",
-						"format": "int32",
-						"description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
-						"example": 1001
-					},
-					"totalAmount": {
-						"type": "number",
-						"description": "訂單總金額",
-						"example": 500.0
-					}
-				}
-			},
-			"PageResponseGetOrderListResponse": {
-				"type": "object",
-				"description": "分頁回應",
-				"properties": {
-					"content": {
-						"type": "array",
-						"description": "資料內容",
-						"items": {
-							"$ref": "#/components/schemas/GetOrderListResponse"
-						}
-					},
-					"page": {
-						"type": "integer",
-						"format": "int32",
-						"description": "當前頁碼（從 0 開始）",
-						"example": 0
-					},
-					"size": {
-						"type": "integer",
-						"format": "int32",
-						"description": "每頁筆數",
-						"example": 20
-					},
-					"totalElements": {
-						"type": "integer",
-						"format": "int64",
-						"description": "總筆數",
-						"example": 100
-					},
-					"totalPages": {
-						"type": "integer",
-						"format": "int32",
-						"description": "總頁數",
-						"example": 5
-					}
-				}
-			},
-			"GetAccountListResponse": {
-				"type": "object",
-				"description": "帳戶列表回應",
-				"properties": {
-					"id": {
-						"type": "integer",
-						"format": "int32",
-						"description": "帳戶 ID",
-						"example": 1
-					},
-					"name": {
-						"type": "string",
-						"description": "帳戶名稱",
-						"example": "Bobby"
-					},
-					"status": {
-						"type": "string",
-						"description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
-						"enum": ["Y", "N"],
-						"example": "Y"
-					}
-				}
-			},
-			"PageResponseGetAccountListResponse": {
-				"type": "object",
-				"description": "分頁回應",
-				"properties": {
-					"content": {
-						"type": "array",
-						"description": "資料內容",
-						"items": {
-							"$ref": "#/components/schemas/GetAccountListResponse"
-						}
-					},
-					"page": {
-						"type": "integer",
-						"format": "int32",
-						"description": "當前頁碼（從 0 開始）",
-						"example": 0
-					},
-					"size": {
-						"type": "integer",
-						"format": "int32",
-						"description": "每頁筆數",
-						"example": 20
-					},
-					"totalElements": {
-						"type": "integer",
-						"format": "int64",
-						"description": "總筆數",
-						"example": 100
-					},
-					"totalPages": {
-						"type": "integer",
-						"format": "int32",
-						"description": "總頁數",
-						"example": 5
-					}
-				}
-			},
-			"GetAccountDetailResponse": {
-				"type": "object",
-				"description": "帳戶詳細資訊回應",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "帳戶名稱",
-						"example": "Bobby"
-					},
-					"status": {
-						"type": "string",
-						"description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
-						"enum": ["Y", "N"],
-						"example": "Y"
-					}
-				}
-			}
-		}
-	}
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8787",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Account",
+      "description": "帳戶管理 API"
+    },
+    {
+      "name": "Order",
+      "description": "訂單管理 API"
+    },
+    {
+      "name": "Product",
+      "description": "商品管理 API"
+    }
+  ],
+  "paths": {
+    "/product/{id}": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "獲取單一商品詳細資訊",
+        "description": "根據 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將回傳 NotFound。",
+        "operationId": "getProductDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得商品詳細資訊",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProductDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "商品不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "更新商品",
+        "description": "更新現有商品資訊。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 ProductAlreadyExistException。",
+        "operationId": "updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功"
+          },
+          "400": {
+            "description": "參數驗證失敗或商品名稱已存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "商品不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "刪除商品",
+        "description": "執行商品軟刪除。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。",
+        "operationId": "deleteProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "商品 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "刪除成功"
+          },
+          "404": {
+            "description": "商品不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order": {
+      "put": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "更新訂單內容",
+        "description": "更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 InvalidRequestException），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單狀態與明細。",
+        "operationId": "updateOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功"
+          },
+          "400": {
+            "description": "參數驗證失敗、重複商品或庫存不足",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "訂單不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "建立新訂單",
+        "description": "建立新訂單。先驗證帳戶是否啟用（不啟用則拋出 AccountInactiveException），檢查訂單內是否有重複商品（重複則拋出 InvalidRequestException），最後透過商品服務處理庫存（若狀態不可銷售或庫存不足由商品服務拋出異常）。成功則新增訂單主檔（預設狀態 1001）與明細。",
+        "operationId": "createOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "建立成功，回傳訂單 ID",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "參數驗證失敗、帳戶未啟用、重複商品或庫存不足",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "帳戶或商品不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/{id}": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "獲取帳戶詳細資訊",
+        "description": "根據 ID 獲取帳戶詳細資訊。受限於 SQLRestriction 規則，若帳戶不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。",
+        "operationId": "getAccountDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "帳戶 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得帳戶詳細資訊",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAccountDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "帳戶不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "更新帳戶",
+        "description": "更新現有帳戶資訊。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若欲將狀態從啟用 \u0027Y\u0027 變更為停用 \u0027N\u0027，會先檢查該帳戶是否仍有關聯訂單，若有則拋出 AccountStillHasOrderCanNotBeDeleteException。",
+        "operationId": "updateAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "帳戶 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功"
+          },
+          "400": {
+            "description": "參數驗證失敗或帳戶仍有關聯訂單",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "帳戶不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "刪除帳戶",
+        "description": "執行帳戶軟刪除。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若該帳戶仍有關聯訂單，則拋出 AccountStillHasOrderCanNotBeDeleteException。",
+        "operationId": "deleteAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "帳戶 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "刪除成功"
+          },
+          "400": {
+            "description": "帳戶仍有關聯訂單，無法刪除",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "帳戶不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "獲取商品列表（分頁）",
+        "description": "獲取所有商品的分頁列表。受限於 SQLRestriction 規則，僅會回傳未被軟刪除且銷售狀態為 1001 (AVAILABLE) 的商品。",
+        "operationId": "getProductList",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            },
+            "example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得商品分頁列表",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseGetProductListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "新增商品",
+        "description": "建立新商品。若已存在同名商品則拋出 ProductAlreadyExistException。成功則新增商品資料，預設銷售狀態為 1001 (AVAILABLE)。",
+        "operationId": "createProduct",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "建立成功，回傳商品 ID",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "參數驗證失敗或商品名稱已存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product/processOrderItems": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "處理訂單中的商品庫存",
+        "description": "內部使用：處理訂單建立/更新時的商品庫存扣除與歸還。",
+        "operationId": "processOrderItems",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessOrderItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "處理成功"
+          }
+        }
+      }
+    },
+    "/account": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "獲取帳戶列表（分頁）",
+        "description": "獲取所有帳戶的分頁列表。受限於 SQLRestriction 規則，僅會回傳未軟刪除且狀態為啟用 \u0027Y\u0027 的帳戶。",
+        "operationId": "getAccountList",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            },
+            "example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得帳戶分頁列表",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseGetAccountListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "建立新帳戶",
+        "description": "建立新帳戶。成功則新增帳戶資料，預設狀態為啟用 \u0027Y\u0027。",
+        "operationId": "createAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "建立成功，回傳帳戶 ID",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "參數驗證失敗",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product/batch": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "批量獲取商品詳細資訊",
+        "description": "根據多個 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，該 ID 將被忽略。",
+        "operationId": "getProductBatch",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "商品 ID 集合（逗號分隔）",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "uniqueItems": true
+            },
+            "example": "1,2,3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得商品詳細資訊列表",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetProductDetailResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/{orderId}": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "獲取訂單詳細資訊",
+        "description": "獲取指定訂單的詳細資訊。受限於SQLRestriction規則，若訂單不存在、已被軟刪除或狀態非 1001 (CREATED)，將回傳 NotFound。",
+        "operationId": "getOrderDetails",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "description": "訂單 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得訂單詳細資訊",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrderDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "訂單不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "刪除訂單",
+        "description": "刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會對訂單主檔與明細進行軟刪除，並透過商品服務歸還商品庫存。",
+        "operationId": "deleteOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "description": "訂單 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "刪除成功"
+          },
+          "404": {
+            "description": "訂單不存在",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/account/{accountId}": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "獲取帳戶訂單清單（分頁）",
+        "description": "獲取該帳戶的所有有效訂單分頁清單。受限於SQLRestriction規則，僅會回傳未被軟刪除且狀態為 1001 (CREATED) 的訂單。",
+        "operationId": "getOrderList",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "帳戶 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "description": "分頁參數（page\u003d頁碼從0開始, size\u003d每頁筆數, sort\u003d排序欄位,方向）",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            },
+            "example": "page\u003d0\u0026size\u003d20\u0026sort\u003did,asc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得訂單分頁列表",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseGetOrderListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/order/account/{accountId}/exists": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "檢查帳戶ID是否存在於任何有效訂單中",
+        "description": "判斷帳戶是否有關聯的有效訂單，用於帳戶更新與刪除時的檢核。受限於系統規則，僅會針對未軟刪除且狀態為 1001 (CREATED) 的訂單進行判定。",
+        "operationId": "AccountIdIsInOrder",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "帳戶 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "回傳布林值，true 表示有關聯訂單",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpdateProductRequest": {
+        "type": "object",
+        "description": "更新商品請求",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "商品名稱",
+            "example": "商品A",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "price": {
+            "type": "number",
+            "description": "商品價格",
+            "example": 250.0
+          },
+          "saleStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
+            "example": 1001
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32",
+            "description": "可用庫存數量",
+            "example": 100
+          }
+        },
+        "required": [
+          "available",
+          "name",
+          "price",
+          "saleStatus"
+        ]
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateOrderDetailRequest": {
+        "type": "object",
+        "description": "更新訂單明細請求",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "購買數量",
+            "example": 3
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ]
+      },
+      "UpdateOrderRequest": {
+        "type": "object",
+        "description": "更新訂單請求",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "訂單 ID",
+            "example": 1
+          },
+          "orderStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
+            "example": 1001
+          },
+          "items": {
+            "type": "array",
+            "description": "訂單明細項目列表",
+            "items": {
+              "$ref": "#/components/schemas/UpdateOrderDetailRequest"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "items",
+          "orderId",
+          "orderStatus"
+        ]
+      },
+      "UpdateAccountRequest": {
+        "type": "object",
+        "description": "更新帳戶請求",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "帳戶名稱",
+            "example": "Bobby",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "status": {
+            "type": "string",
+            "description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
+            "enum": [
+              "Y",
+              "N"
+            ],
+            "example": "Y",
+            "minLength": 1,
+            "pattern": "^[YN]$"
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ]
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "description": "建立商品請求",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "商品名稱",
+            "example": "商品A",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "price": {
+            "type": "number",
+            "description": "商品價格",
+            "example": 250.0
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32",
+            "description": "可用庫存數量",
+            "example": 100
+          }
+        },
+        "required": [
+          "available",
+          "name",
+          "price"
+        ]
+      },
+      "OrderItemRequest": {
+        "type": "object",
+        "description": "訂單項目請求（內部使用）",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "購買數量",
+            "example": 2
+          }
+        }
+      },
+      "ProcessOrderItemsRequest": {
+        "type": "object",
+        "description": "處理訂單項目請求（內部使用）",
+        "properties": {
+          "originalItems": {
+            "type": "array",
+            "description": "原始訂單項目集合",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemRequest"
+            },
+            "uniqueItems": true
+          },
+          "updatedItems": {
+            "type": "array",
+            "description": "更新後的訂單項目集合",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemRequest"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "CreateOrderDetailRequest": {
+        "type": "object",
+        "description": "建立訂單明細請求",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "購買數量",
+            "example": 2
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ]
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "description": "建立訂單請求",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "帳戶 ID",
+            "example": 1
+          },
+          "items": {
+            "type": "array",
+            "description": "訂單明細項目列表",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderDetailRequest"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "accountId",
+          "items"
+        ]
+      },
+      "CreateAccountRequest": {
+        "type": "object",
+        "description": "建立帳戶請求",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "帳戶名稱",
+            "example": "Bobby",
+            "maxLength": 50,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "GetProductListResponse": {
+        "type": "object",
+        "description": "商品列表回應",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "商品名稱",
+            "example": "商品A"
+          },
+          "price": {
+            "type": "number",
+            "description": "商品價格",
+            "example": 250.0
+          },
+          "saleStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
+            "example": 1001
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32",
+            "description": "可用庫存數量",
+            "example": 100
+          }
+        }
+      },
+      "PageResponseGetProductListResponse": {
+        "type": "object",
+        "description": "分頁回應",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "資料內容",
+            "items": {
+              "$ref": "#/components/schemas/GetProductListResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "當前頁碼（從 0 開始）",
+            "example": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每頁筆數",
+            "example": 20
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "總筆數",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "總頁數",
+            "example": 5
+          }
+        }
+      },
+      "GetProductDetailResponse": {
+        "type": "object",
+        "description": "商品詳細資訊回應",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "商品名稱",
+            "example": "商品A"
+          },
+          "price": {
+            "type": "number",
+            "description": "商品價格",
+            "example": 250.0
+          },
+          "saleStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
+            "example": 1001
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32",
+            "description": "可用庫存數量",
+            "example": 100
+          }
+        }
+      },
+      "GetOrderDetailResponse": {
+        "type": "object",
+        "description": "訂單詳細資訊回應",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "帳戶 ID",
+            "example": 1
+          },
+          "orderStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
+            "example": 1001
+          },
+          "totalAmount": {
+            "type": "number",
+            "description": "訂單總金額",
+            "example": 500.0
+          },
+          "items": {
+            "type": "array",
+            "description": "訂單明細項目列表",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemDTO"
+            }
+          }
+        }
+      },
+      "OrderItemDTO": {
+        "type": "object",
+        "description": "訂單明細項目",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "商品 ID",
+            "example": 1
+          },
+          "productName": {
+            "type": "string",
+            "description": "商品名稱",
+            "example": "商品A"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "購買數量",
+            "example": 2
+          },
+          "productPrice": {
+            "type": "number",
+            "description": "商品單價",
+            "example": 250.0
+          }
+        }
+      },
+      "GetOrderListResponse": {
+        "type": "object",
+        "description": "訂單列表回應",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "訂單 ID",
+            "example": 1
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
+            "example": 1001
+          },
+          "totalAmount": {
+            "type": "number",
+            "description": "訂單總金額",
+            "example": 500.0
+          }
+        }
+      },
+      "PageResponseGetOrderListResponse": {
+        "type": "object",
+        "description": "分頁回應",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "資料內容",
+            "items": {
+              "$ref": "#/components/schemas/GetOrderListResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "當前頁碼（從 0 開始）",
+            "example": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每頁筆數",
+            "example": 20
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "總筆數",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "總頁數",
+            "example": 5
+          }
+        }
+      },
+      "GetAccountListResponse": {
+        "type": "object",
+        "description": "帳戶列表回應",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "帳戶 ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "帳戶名稱",
+            "example": "Bobby"
+          },
+          "status": {
+            "type": "string",
+            "description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
+            "enum": [
+              "Y",
+              "N"
+            ],
+            "example": "Y"
+          }
+        }
+      },
+      "PageResponseGetAccountListResponse": {
+        "type": "object",
+        "description": "分頁回應",
+        "properties": {
+          "content": {
+            "type": "array",
+            "description": "資料內容",
+            "items": {
+              "$ref": "#/components/schemas/GetAccountListResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "當前頁碼（從 0 開始）",
+            "example": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每頁筆數",
+            "example": 20
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "總筆數",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "總頁數",
+            "example": 5
+          }
+        }
+      },
+      "GetAccountDetailResponse": {
+        "type": "object",
+        "description": "帳戶詳細資訊回應",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "帳戶名稱",
+            "example": "Bobby"
+          },
+          "status": {
+            "type": "string",
+            "description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
+            "enum": [
+              "Y",
+              "N"
+            ],
+            "example": "Y"
+          }
+        }
+      }
+    }
+  }
 }
