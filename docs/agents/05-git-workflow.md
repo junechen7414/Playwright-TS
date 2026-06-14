@@ -128,13 +128,42 @@ remote:      https://github.com/junechen7414/Playwright-TS/pull/new/feature/your
 
 ### PR 標題和描述建議
 
-- **標題格式**：遵循 Conventional Commits 格式
-  - 範例：`feat(auth): add login functionality`
-- **描述內容**：
-  - 簡述變更內容
-  - 列出主要修改項目
-  - 如有相關 issue，使用 `Closes #123` 連結
-  - 如有破壞性變更，明確標註 `BREAKING CHANGE`
+#### 標題格式
+遵循 Conventional Commits 格式：
+- 範例：`feat(auth): add login functionality`
+- 範例：`docs(git): 更新 Git 工作流程說明`
+
+#### 描述內容
+**應該包含：**
+- ✅ 變更的目的和背景
+- ✅ 主要功能或改進說明
+- ✅ 相關 issue 連結（使用 `Closes #123`）
+- ✅ 破壞性變更說明（使用 `BREAKING CHANGE`）
+
+**不需要包含：**
+- ❌ 修改的檔案列表（GitHub 會自動顯示）
+- ❌ 測試結果（CI/CD 會自動執行並顯示）
+- ❌ 程式碼細節（可在 Files changed 中查看）
+
+#### Labels 選擇
+**必須為 PR 加上適當的 labels**，根據變更性質選擇 1-2 個最相關的：
+
+| 變更類型 | 建議 Label |
+|---------|-----------|
+| 文件更新 | `documentation` |
+| 新功能 | `enhancement` |
+| 錯誤修復 | `bugfix` |
+| 程式碼重構 | `refactor` |
+| 測試相關 | `test` 或 `e2e-test` |
+| 依賴更新 | `dependencies` |
+| 配置變更 | `config` |
+| 破壞性變更 | `breaking-change` |
+| 建置/工具 | `chore` |
+
+**範例：**
+- 文件更新的 PR → 加上 `documentation` label
+- 新增測試的 PR → 加上 `e2e-test` label
+- 重構程式碼的 PR → 加上 `refactor` label
 
 ## 分支清理
 
@@ -221,7 +250,6 @@ git push origin --delete feature/add-login-page
 | `e2e-test` | E2E 測試相關 |
 | `enhancement` | 功能增強 |
 | `refactor` | 程式碼重構 |
-| `test` | 測試相關 |
 
 **Agent 建議流程**：建立 PR 時應根據改動性質選擇 1-2 個最相關的 labels。
 
