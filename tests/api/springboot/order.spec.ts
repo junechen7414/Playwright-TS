@@ -99,14 +99,11 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		existingAccountWithMultipleOrders,
 	}) => {
 		// 使用分頁參數查詢
-		const response = await springbootApi.listOrdersByAccount(
-			existingAccountWithMultipleOrders.id,
-			{
-				page: 0,
-				size: 1,
-				sort: 'id,desc',
-			},
-		);
+		const response = await springbootApi.listOrdersByAccount(existingAccountWithMultipleOrders.id, {
+			page: 0,
+			size: 1,
+			sort: 'id,desc',
+		});
 		const pageResponse = expectOk(response);
 
 		// 驗證分頁參數生效
