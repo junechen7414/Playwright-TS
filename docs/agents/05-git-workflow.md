@@ -84,6 +84,120 @@ updated readme  # 缺少 type
 2. 進行開發並定期 commit
 3. 推送到遠端並創建 Pull Request
 4. 通過 CI/CD 檢查後合併
+5. 合併後清理本地和遠端分支
+
+## 建立 Pull Request
+
+### 使用 BOB IDE 的 Slash Command
+
+如果您在 BOB IDE 或支援的 shell 環境中工作，可以使用 `/create-pr` slash command 快速建立 PR：
+
+1. 確保已推送分支到遠端
+2. 切換到 **Advanced** mode
+3. 使用指令：`/create-pr`
+4. BOB 會自動：
+   - 分析 commit 歷史
+   - 生成 PR 標題和描述
+   - 選擇適當的 labels
+   - 建立 Pull Request
+
+### 手動建立 PR
+
+如果不在 BOB IDE 環境中，或 `/create-pr` command 不可用，請使用以下方式：
+
+#### 方式一：透過 Git 推送訊息中的連結
+
+推送分支後，Git 會在終端機輸出中提供建立 PR 的連結：
+
+```
+remote: Create a pull request for 'feature/your-branch' on GitHub by visiting:
+remote:      https://github.com/junechen7414/Playwright-TS/pull/new/feature/your-branch
+```
+
+直接點擊或複製該連結到瀏覽器即可建立 PR。
+
+#### 方式二：透過 GitHub 網頁介面
+
+1. 前往專案的 GitHub 頁面
+2. 點擊 **Pull requests** 標籤
+3. 點擊 **New pull request** 按鈕
+4. 選擇您的分支
+5. 填寫 PR 標題和描述
+6. 選擇適當的 labels（參考下方「查詢 GitHub Labels」章節）
+7. 點擊 **Create pull request**
+
+### PR 標題和描述建議
+
+- **標題格式**：遵循 Conventional Commits 格式
+  - 範例：`feat(auth): add login functionality`
+- **描述內容**：
+  - 簡述變更內容
+  - 列出主要修改項目
+  - 如有相關 issue，使用 `Closes #123` 連結
+  - 如有破壞性變更，明確標註 `BREAKING CHANGE`
+
+## 分支清理
+
+### 合併後的清理流程
+
+當 Pull Request 被合併到 `main` 後，應該清理本地和遠端的 feature 分支。
+
+### PowerShell 指令
+
+PowerShell 使用分號 (`;`) 來串接多個指令：
+
+```powershell
+# 切換回 main 分支並更新
+git checkout main; git pull
+
+# 刪除本地分支
+git branch -d <branch-name>
+
+# 刪除遠端分支（如果需要）
+git push origin --delete <branch-name>
+```
+
+**完整範例**：
+
+```powershell
+# 假設要清理 feature/add-login-page 分支
+git checkout main; git pull; git branch -d feature/add-login-page
+
+# 如果遠端分支還存在，也一併刪除
+git push origin --delete feature/add-login-page
+```
+
+### CMD 指令
+
+CMD 使用 `&&` 來串接多個指令：
+
+```cmd
+REM 切換回 main 分支並更新
+git checkout main && git pull
+
+REM 刪除本地分支
+git branch -d <branch-name>
+
+REM 刪除遠端分支（如果需要）
+git push origin --delete <branch-name>
+```
+
+**完整範例**：
+
+```cmd
+REM 假設要清理 feature/add-login-page 分支
+git checkout main && git pull && git branch -d feature/add-login-page
+
+REM 如果遠端分支還存在，也一併刪除
+git push origin --delete feature/add-login-page
+```
+
+### 清理注意事項
+
+- ✅ 確認 PR 已經合併後再刪除分支
+- ✅ 使用 `-d` 參數（小寫）進行安全刪除，如果分支未合併會提示警告
+- ✅ 如果確定要強制刪除未合併的分支，使用 `-D` 參數（大寫）
+- ⚠️ 刪除遠端分支前，確認其他團隊成員不再需要該分支
 
 ## 查詢 GitHub Labels
 
