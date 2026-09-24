@@ -17,8 +17,8 @@ export class CartPage {
 		this.page = page;
 		this.checkoutButton = page.getByRole('button', { name: 'Checkout' });
 		this.continueShoppingButton = page.getByRole('button', { name: 'Continue shopping' });
-		// 使用 link role 定位購物車商品名稱（它們是可點擊的連結）
-		this.cartItems = page.getByRole('link').filter({ has: page.locator('.inventory_item_name') });
+		// 購物車商品名稱是可點擊的 button，無障礙名稱為「View details for <商品名稱>」
+		this.cartItems = page.getByRole('button', { name: /^View details for / });
 		// 購物車標題：使用 getByText 因為它是 span 元素而非 heading
 		this.cartTitle = page.getByText('Your Cart', { exact: true });
 	}

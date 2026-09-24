@@ -9,19 +9,20 @@ import { expect, type Locator, type Page } from '@playwright/test';
 export class HamburgerMenu {
 	readonly page: Page;
 	readonly menuButton: Locator;
-	readonly inventoryLink: Locator;
+	readonly inventoryButton: Locator;
 	readonly aboutLink: Locator;
-	readonly logoutLink: Locator;
-	readonly resetAppStateLink: Locator;
+	readonly logoutButton: Locator;
+	readonly resetAppStateButton: Locator;
 	readonly closeMenuButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 		this.menuButton = page.getByRole('button', { name: 'Open Menu' });
-		this.inventoryLink = page.getByRole('link', { name: 'All Items' });
+		// 選單項目中只有 About 仍是外部連結，其餘皆為 button
+		this.inventoryButton = page.getByRole('button', { name: 'All Items' });
 		this.aboutLink = page.getByRole('link', { name: 'About' });
-		this.logoutLink = page.getByRole('link', { name: 'Logout' });
-		this.resetAppStateLink = page.getByRole('link', { name: 'Reset App State' });
+		this.logoutButton = page.getByRole('button', { name: 'Logout' });
+		this.resetAppStateButton = page.getByRole('button', { name: 'Reset App State' });
 		this.closeMenuButton = page.getByRole('button', { name: 'Close menu' });
 	}
 
@@ -47,7 +48,7 @@ export class HamburgerMenu {
 	 */
 	async goto() {
 		await this.openMenu();
-		await this.inventoryLink.click();
+		await this.inventoryButton.click();
 	}
 
 	/**
@@ -70,11 +71,11 @@ export class HamburgerMenu {
 	/**
 	 * 執行登出操作
 	 *
-	 * 開啟選單並點擊登出連結
+	 * 開啟選單並點擊登出按鈕
 	 */
 	async logout() {
 		await this.openMenu();
-		await this.logoutLink.click();
+		await this.logoutButton.click();
 	}
 
 	/**
@@ -84,7 +85,7 @@ export class HamburgerMenu {
 	 */
 	async resetAppState() {
 		await this.openMenu();
-		await this.resetAppStateLink.click();
+		await this.resetAppStateButton.click();
 		await this.closeMenu();
 		await this.page.reload();
 	}

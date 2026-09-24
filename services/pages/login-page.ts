@@ -18,10 +18,8 @@ export class LoginPage {
 		this.usernameInput = page.getByRole('textbox', { name: 'Username' });
 		this.passwordInput = page.getByRole('textbox', { name: 'Password' });
 		this.loginButton = page.getByRole('button', { name: 'Login' });
-		// 使用 getByRole 定位錯誤訊息容器
-		this.errorMessage = page
-			.getByRole('heading', { level: 3 })
-			.filter({ hasText: 'Epic sadface:' });
+		// 錯誤訊息容器為 role="alert"（內含 Dismiss error 按鈕與訊息文字）
+		this.errorMessage = page.getByRole('alert').filter({ hasText: 'Epic sadface:' });
 	}
 
 	/**
