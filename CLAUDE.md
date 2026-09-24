@@ -12,36 +12,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **一律使用 `podman`，不要使用 `docker`**（compose 指令透過 `podman compose` 執行）。
 - **註解與文件使用繁體中文**，與現有程式碼保持一致。
 - **優先使用 `getByRole`** 等以無障礙角色為基礎的 locator，避免 CSS/XPath。
-- 格式化與 Lint 使用 **Biome**（tab 縮排、單引號、一律加分號、trailing comma、行寬 100）。`noFloatingPromises` 設為 error —— promise 一律要 `await`。
+- 格式化與 Lint 使用 **Biome**。`noFloatingPromises` 設為 error —— promise 一律要 `await`。
+- import 一律使用 `tsconfig.json` 定義的路徑別名（`@pages/*`、`@fixtures/*` 等），不用冗長的相對路徑。
 
 ## 常用指令
 
 ```bash
-# Lint / 格式化 (Biome)
-pnpm biome:check          # 僅檢查
-pnpm biome:fix            # 檢查 + 自動修復 + 整理 imports
-
-# 容器堆疊 (Spring Boot app + Oracle DB，透過 podman compose)
-pnpm pull-image           # 拉取最新映像檔
-pnpm compose-up           # 啟動堆疊 (app 在 localhost:8787，Oracle 在 1521)
-pnpm compose-down         # 停止並移除 volumes (-v)
 pnpm compose-restart      # down + up —— 執行間用於重置測試隔離狀態
-
-# 測試
-pnpm test:e2e             # 執行 Spring Boot API 測試 (tests/api/springboot)
-pnpm test:e2e:clean       # 清除產出物後執行 API 測試
 pnpm test:e2e:ci          # compose-restart + clean + API 測試 (完整 CI 流程)
-pnpm local-test-all       # 清除後執行所有 projects (UI + API)
 
 # 重新產生 API 型別 -> services/schema/api-types.ts
 pnpm api-spec:update      # 從跑起來的容器抓 /v3/api-docs（需先 compose-up；CI 走這條）
 pnpm api-spec:update:file # 離線：改用版控裡的 docs/swagger.json 快照
-
-# 執行單一測試 / 子集 (直接使用 Playwright CLI)
-pnpm exec playwright test tests/api/springboot/order.spec.ts
-pnpm exec playwright test -g "應該能建立新訂單"          # 依標題
-pnpm exec playwright test --project=springboot-api      # 依 project
-pnpm exec playwright show-report playwright-report/<PW_DATE>
 ```
 
 需要一個含 `ORACLE_TEST_USERNAME` / `ORACLE_TEST_PASSWORD` 的 `.env`（參考 `.env.example`）。執行 API 測試前需先啟動容器堆疊（`pnpm compose-up`），或使用會先重啟堆疊的 `pnpm test:e2e:ci`。
@@ -69,21 +51,9 @@ CI job summary 常出現「版控快照 `docs/swagger.json` 與被測 image 的 
 
 範例（API 測試）：`test('...', async ({ springbootApi, existingAccount, newOrderData }) => { ... })`。資料型 fixture 如 `existingAccount`、`existingProduct`、`existingOrder` 會按需建立後端狀態；`updateAccountData` 等則提供 payload。
 
-### Playwright projects (`playwright.config.ts`)
-
-- `ui-setup` —— `*.setup.ts`，對 saucedemo 預先登入（狀態存於 `.auth`）。
-- `springboot-api` —— `tests/api/springboot/*.spec.ts`，baseURL 為 `http://localhost:8787/`。
-- `ui-staging` —— saucedemo `*.spec.ts`，相依於 `ui-setup`，對線上站點執行。
-
-HTML 報告在本機輸出至 `playwright-report/<PW_DATE>`（加時間戳），在 CI 則輸出至 `playwright-report/`。
-
 ### 測試隔離
 
 `globalSetup`（Flyway clean/migrate）目前**已停用**，改採**容器重啟策略**：`compose-restart` 會清除 volumes 並重建資料庫，讓每次執行都從乾淨的 Oracle schema 開始。詳見 `docs/testing/e2e-cleanup-strategy.md`。
-
-## 路徑別名 (tsconfig.json)
-
-`@/*` → 專案根目錄、`@tests/*`、`@fixtures/* → services/fixtures`、`@pages/*`、`@apis/*`、`@schema/*`、`@components/*`、`@config/*`。請使用這些別名取代冗長的相對路徑 import。
 
 ## Git 工作流程
 

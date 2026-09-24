@@ -46,7 +46,7 @@ This file provides guidance to agents when working with code in this repository.
 6. **容器重啟策略**: 確保測試隔離性和可重複性
 7. **繁體中文優先**: 所有註解和文件使用繁體中文
 8. **持續改進文件**: 發現可改進的 instruction 時，應主動提出並更新相關文件
-9. **遵循 Git 工作流程**: 必須在適當的 feature 分支上進行開發（參考 [@Git 工作流程](docs/agents/05-git-workflow.md)）
+9. **遵循 Git 工作流程**: Trunk-based —— 小型變更直接提交到 `main`；僅高風險變更（CI 設定、大型功能、跨模組重構、依賴大版本升級）才開 `feature/`、`bugfix/`、`refactor/` 等分支並以 PR（rebase merge）合併（參考 [@Git 工作流程](docs/agents/05-git-workflow.md)）
 
 ---
 
