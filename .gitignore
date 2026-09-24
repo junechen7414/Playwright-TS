@@ -11,3 +11,6 @@ node_modules/
 # 從被測容器現抓的 OpenAPI spec（api-spec:update 的暫存檔）。
 # 版控中的 API 記錄是 docs/swagger.json，由上游 SpringBoot repo 的 CI 同步。
 docs/swagger.live.json
+
+# Claude Code 個人設定（權限等），不進版控；共用的 .claude/skills/ 則要進版控
+.claude/settings.local.json
