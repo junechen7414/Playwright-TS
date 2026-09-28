@@ -3,7 +3,6 @@ name: ci-triage
 description: 分析 GitHub Actions 失敗 run 的 playwright-report artifact，找出根因並分流處理 —— UI（ui-staging）失敗依頁面快照直接修 locator 並驗證；API（springboot-api）失敗到上游 SpringBoot repo 調查後產出報告，由使用者決定修法。當使用者提供 CI artifact zip、run 連結或說「CI 紅了」時使用。
 argument-hint: <artifact.zip 路徑 | run URL/ID>
 ---
-
 # CI 失敗分流（ci-triage）
 
 以 CI 上傳的 `playwright-report` artifact 作為修復依據。UI 與 API 失敗的資訊來源本質不同，**必須分流**：
@@ -20,7 +19,7 @@ argument-hint: <artifact.zip 路徑 | run URL/ID>
 - 使用者給了 zip 路徑 → 直接用。
 - 使用者給了 run URL/ID：
   - 有 `gh` CLI 時：`gh run download <run-id> -n playwright-report -D <暫存目錄>`
-  - 沒有時（目前本機未安裝）：請使用者從 run 頁面下方 Artifacts 下載 zip 並提供路徑。不要猜路徑。
+  - 沒有時：請使用者從 run 頁面下方 Artifacts 下載 zip 並提供路徑。不要猜路徑。
 
 ## 2. 產生失敗摘要
 
@@ -32,11 +31,11 @@ node .claude/skills/ci-triage/scripts/summarize-report.mjs "<zip 或已解壓目
 
 先把失敗**依根因分群**（多個測試常卡在同一個 locator 或同一個端點），再依 project 分流：
 
-| project | 走哪條 |
-|---|---|
-| `ui-staging` / `ui-setup` | §3 UI 流程 |
-| `springboot-api` | §4 API 流程 |
-| 全部失敗且錯誤是 `ECONNREFUSED`、容器 unhealthy、`beforeAll` 逾時 | 環境／基礎設施問題：回報使用者並建議看 run log，**不改程式碼** |
+| project                                                              | 走哪條                                                               |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `ui-staging` / `ui-setup`                                        | §3 UI 流程                                                          |
+| `springboot-api`                                                   | §4 API 流程                                                         |
+| 全部失敗且錯誤是`ECONNREFUSED`、容器 unhealthy、`beforeAll` 逾時 | 環境／基礎設施問題：回報使用者並建議看 run log，**不改程式碼** |
 
 另外確認是否為我們自己造成的回歸：看摘要中的 commit 與前一次綠燈之間本 repo 改了什麼（`git log <上次綠燈>..<commit>`）。
 
@@ -54,22 +53,23 @@ node .claude/skills/ci-triage/scripts/summarize-report.mjs "<zip 或已解壓目
 
 ## 4. API 流程（只調查、產出報告）
 
-上游 repo 在本機：`C:\Users\BobbyChen\Documents\Github\SpringBoot`（`src/main/java/com/ibm/demo/{account,order,product}/` 的 controller/service/DTO，migration 在 `src/main/resources/db/migration/`）。**只讀，不在上游做任何修改或 commit。**
+上游是 GitHub 上名為 **`SpringBoot`** 的 repo，與本 repo 同一個 owner（owner 可由 `git remote get-url origin` 取得）。不確定是哪個 repo 時，用 GitHub MCP 的 `search_repositories` 確認；也可以用 `docker-compose.test.yml` 的 image 名稱（`ghcr.io/<owner>/springboot`）交叉比對。**只讀，不在上游做任何修改、commit 或開 issue**（開 issue 由使用者決定）。
+
+透過 GitHub MCP 讀上游即可，不需要本機 clone：`list_commits`（`sha` 指定分支，`until` 界定時間）、`get_commit`（`detail: full_patch` 看 diff）、`get_file_contents`（`ref` 指定版本）、`search_code`（`repo:<owner>/SpringBoot` 找端點）。使用者若表示本機已有 clone，也可以改用 `git log` / `git show`，但不要切換上游的分支。
 
 1. **確定被測的上游版本**：image tag 寫在 run 的 job summary「Test Environment」區塊（artifact 裡沒有，請使用者提供或從 run 頁面讀）。
    - `sha-<short>` → 直接對應上游 commit。
-   - `main` / `latest` → run 當下的上游 `main`；用摘要中的時間與 `git log origin/main --until=<時間>` 界定。
-   - `pr-<N>` → 上游 PR 分支。
-   - 先 `git -C <上游> fetch`，查看而非切換分支（`git log` / `git show` 帶 ref 即可）。
+   - `main` / `latest` → run 當下的上游 `main`；用摘要中的時間當 `list_commits` 的 `until` 界定。
+   - `pr-<N>` → 上游 PR（`pull_request_read` 取得其 head commit）。
 2. **對照契約**：讀 artifact 的 `spec-drift.diff`（注意：這個差異**多數是預期行為**，讀法見 `docs/agents/13-advanced-techniques.md`）與 `docs/swagger.live.json`，確認失敗端點的 schema 是否變了。
-3. **找上游變更**：對失敗端點的路徑在上游 grep 出 controller → service → DTO/entity，看相關檔案在被測版本前的 `git log -p`。
+3. **找上游變更**：用 `search_code` 以失敗端點的路徑找出 controller，再順著 service → DTO/entity → DB migration；對這些檔案用 `list_commits`（`path` 參數）找出被測版本前的相關 commit，再用 `get_commit` 看 diff。
 4. **歸類**，並產出報告給使用者（端點、預期 vs 實際、上游相關 commit、歸類與建議）：
 
-| 歸類 | 判斷依據 | 建議處置 |
-|---|---|---|
-| 上游**有意**改了契約 | spec 變更與上游 commit 意圖一致 | 更新本 repo 的測試／fixture／`api-types.ts`（`pnpm api-spec:update`） |
-| 上游 **bug** | spec 未變但行為錯，或 commit 意圖與行為不符 | 建議到上游開 issue，本 repo **不改** |
-| 本 repo **測試錯誤** | 上游行為與 spec 一致，是測試假設錯（如測了後端不存在的訂單狀態） | 修測試 |
+| 歸類                       | 判斷依據                                                         | 建議處置                                                                  |
+| -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 上游**有意**改了契約 | spec 變更與上游 commit 意圖一致                                  | 更新本 repo 的測試／fixture／`api-types.ts`（`pnpm api-spec:update`） |
+| 上游**bug**          | spec 未變但行為錯，或 commit 意圖與行為不符                      | 建議到上游開 issue，本 repo**不改**                                 |
+| 本 repo**測試錯誤**  | 上游行為與 spec 一致，是測試假設錯（如測了後端不存在的訂單狀態） | 修測試                                                                    |
 
 **等使用者確認歸類後才動手修改。** 修改後以 `pnpm test:e2e:ci` 驗證（需 podman 與 `.env`）。
 
@@ -77,4 +77,4 @@ node .claude/skills/ci-triage/scripts/summarize-report.mjs "<zip 或已解壓目
 
 - 以繁體中文回報：根因、改了哪些檔案、驗證結果（實際 pass/fail 數字）。
 - **commit 前先詢問使用者。** 小型修正依 trunk-based 直接提交 `main`，遵循 Conventional Commits（例：`fix(ui): 更新 SauceDemo 改版後的選單 locator`），body 列出每個結構變更。
-- 本機 `biome check` 在 `core.autocrlf=true` 下會對所有檔案報格式錯誤（CRLF），並非本次變更造成；repo 存的是 LF，CI 不受影響。
+- 若本機設定 `core.autocrlf=true`，`biome check` 會對所有檔案報格式錯誤（CRLF），並非本次變更造成；repo 存的是 LF，CI 不受影響。
