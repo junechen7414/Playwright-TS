@@ -69,7 +69,7 @@ sleep 10
 
 # 5. 執行測試
 echo -e "\n${YELLOW}🧪 步驟 4: 執行 E2E 測試...${NC}"
-npm run test:e2e
+pnpm run test:e2e
 
 TEST_EXIT_CODE=$?
 

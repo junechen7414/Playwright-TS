@@ -74,7 +74,7 @@ Start-Sleep -Seconds 10
 # 5. Execute tests
 Write-Host "`nStep 4: Executing E2E tests..." -ForegroundColor Yellow
 try {
-    npm run test:e2e
+    pnpm run test:e2e
     $testExitCode = $LASTEXITCODE
 } catch {
     $testExitCode = 1
