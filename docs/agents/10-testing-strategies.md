@@ -1,266 +1,65 @@
 # 測試策略
 
-> 本文件說明資料清理策略與全域登入狀態管理
+> 本文件補充 [`AGENTS.md`](../../AGENTS.md) 沒寫到的測試執行細節：Playwright projects、登入狀態的實際機制、資料隔離的邊界。
+> 硬性規範、常用指令、架構與 fixtures 請以 `AGENTS.md` 為準。
 
-## 資料清理策略
+## Playwright projects
 
-本專案採用 **容器重啟策略** 確保測試隔離性。
+`playwright.config.ts` 只定義三個 project，沒有其他名稱（例如 `api-e2e` 並不存在）：
 
-### 工作原理
+| Project | testMatch | 對象 | 備註 |
+|---|---|---|---|
+| `ui-setup` | `**/saucedemo/*.setup.ts` | `https://www.saucedemo.com/` | 登入並寫出 storage state |
+| `ui-staging` | `**/saucedemo/*.spec.ts` | 同上 | `dependencies: ['ui-setup']`，跑它會先自動跑 setup |
+| `springboot-api` | `**/springboot/*.spec.ts` | `BASE_URL`，預設 `http://localhost:8787/` | 每個請求透過 `extraHTTPHeaders` 帶 HTTP Basic 標頭 |
 
-1. 每次測試前停止並刪除所有容器和 volumes
-2. 重新啟動 Docker Compose 環境
-3. Spring Boot 自動執行 Flyway migrate
-4. 等待健康檢查通過後執行測試
+- `pnpm test:e2e` 是 `playwright test tests/api/springboot`，實際只會命中 `springboot-api`。
+- `tests/api/Network.spec.ts`（`page.route` mock 示範）**不符合任何 project 的 testMatch，永遠不會被執行**。
+- HTTP Basic 憑證取自 `API_USERNAME` / `API_PASSWORD`，未設定時落回 `api` / `local-api-secret`；`docker-compose.test.yml` 對後端容器用同一組預設值，所以本機不設也能直接跑。
 
-### 實作方式
+## UI 登入狀態（storageState）
 
-#### Windows (PowerShell)
+本專案**沒有**在 config 的 `use.storageState` 設定登入狀態，而是由 fixture 自己開 context：
 
-```powershell
-# 停止並刪除容器
-podman compose -f docker-compose.test.yml down -v
+1. `tests/ui/saucedemo/Login.setup.ts`（`ui-setup`）透過 `loginPage` 登入兩個帳號，分別寫出
+   `.auth/standard_user.json` 與 `.auth/problem_user.json`（`.auth/` 已列入 `.gitignore`）。
+   problem user 那段不驗證商品頁，只示範多帳號。
+2. `services/fixtures/page-objects.fixture.ts` 的角色 fixture 以
+   `browser.newContext({ storageState: '.auth/<user>.json' })` 建立獨立 context，並在其上組好整組 Page Objects：
+   - `standardUserPage` / `problemUserPage` —— 已登入的 `PageObject` 組合，尚未導頁。
+   - `standardUserProductPage` —— 在 `standardUserPage` 之上先 `productPage.goto()`。
+3. 測試直接解構使用，例如 `async ({ standardUserProductPage }) => { const { productPage, cartPage } = standardUserProductPage; ... }`。
 
-# 啟動新環境
-podman compose -f docker-compose.test.yml up -d
+注意事項：
 
-# 等待健康檢查
-Start-Sleep -Seconds 30
+- 角色 fixture 用的是**自己開的 context**，與內建的 `page` fixture 無關；同一個測試混用 `page`（未登入）與角色 fixture 會是兩個互不共用 cookie 的獨立 context。
+- 一般的 `loginPage` / `productPage` fixture 建在內建 `page` 上且會先 `goto()`，用於「從未登入開始」的流程（如登入測試本身）。
+- `.auth/*.json` 路徑是相對於執行目錄，請從 repo 根目錄跑 Playwright。
+- 新增角色：在 `Login.setup.ts` 加一段登入與寫檔，再於 `page-objects.fixture.ts` 的 `Roles` 加對應 fixture。
 
-# 執行測試
-pnpm playwright test --project=api-e2e
-```
+## API 測試的資料隔離
 
-#### Linux/macOS (Bash)
+容器重啟策略（見 `AGENTS.md` 與 [`docs/testing/e2e-cleanup-strategy.md`](../testing/e2e-cleanup-strategy.md)）只保證**每次執行之間**資料庫是乾淨的。**同一次執行內**：
 
-```bash
-# 停止並刪除容器
-podman compose -f docker-compose.test.yml down -v
+- `fullyParallel: true`，本機 3 個 worker、CI 2 個，所有測試共用同一個 Oracle。
+- 因此測試不可假設資料表為空、不可依賴列表筆數或特定 ID；需要的狀態一律透過 `existingAccount`、`existingProduct`、`existingOrder` 等資料型 fixture 自行建立，並只斷言自己建立的資料。
+- 連續跑兩次而不重啟時，第二次會看到第一次留下的資料 —— 這正是上述規則存在的原因。
 
-# 啟動新環境
-podman compose -f docker-compose.test.yml up -d
+## 等待後端就緒
 
-# 等待健康檢查
-sleep 30
+不要用固定秒數的 sleep 等容器。Oracle 的 healthcheck（PDB 為 READ WRITE、測試使用者已建立、Listener 已註冊 `FREEPDB1`）配合 `depends_on: condition: service_healthy`，讓 app 只在 DB 真的可用後才啟動；CI 則再以 `docker compose up --wait` 等 app 的 healthcheck。本機若剛 `pnpm compose-up` 就跑測試而遇到連線被拒，用 `podman ps` 確認 `spring-boot-app-test` 狀態後再跑。
 
-# 執行測試
-pnpm playwright test --project=api-e2e
-```
-
-### 優點
-
-- ✅ **完全隔離**: 每次都是全新環境，無殘留資料
-- ✅ **簡單可靠**: 不依賴額外工具（如 Flyway CLI）
-- ✅ **適合 CI/CD**: 容易整合到自動化流程
-- ✅ **可重複性**: 測試結果穩定且可預測
-
-### 缺點
-
-- ⏱️ **啟動時間較長**: Oracle DB 需要 1-2 分鐘啟動
-- 💾 **資源消耗**: 每次都要重新初始化資料庫
-
-### 適用情境
-
-- ✅ E2E 測試
-- ✅ 整合測試
-- ✅ CI/CD Pipeline
-- ❌ 單元測試（過於重量級）
-
-### 詳細說明
-完整的策略分析請參考：[e2e-cleanup-strategy.md](../testing/e2e-cleanup-strategy.md)
-
-
-## 全域登入狀態分享
-
-使用 `storageState` 避免每個測試重複登入，提升測試效率。
-
-### 工作原理
-
-1. **Setup 測試**執行登入並儲存狀態
-2. **主測試**設定依賴關係
-3. Playwright 自動注入登入狀態到所有測試
-
-### 配置方式
-
-#### playwright.config.ts
-
-```typescript
-export default defineConfig({
-  projects: [
-    // Setup 專案：執行登入並儲存狀態
-    {
-      name: 'ui-setup',
-      testMatch: '**/saucedemo/*.setup.ts',
-      use: {
-        storageState: 'playwright/.auth/user.json',
-      },
-    },
-    // 主測試專案：使用儲存的登入狀態
-    {
-      name: 'ui-staging',
-      testMatch: '**/saucedemo/*.spec.ts',
-      dependencies: ['ui-setup'], // 依賴 Setup
-      use: {
-        storageState: 'playwright/.auth/user.json',
-      },
-    },
-  ],
-});
-```
-
-### Setup 測試範例
-
-```typescript
-// tests/ui/saucedemo/Login.setup.ts
-import { test as setup } from '@playwright/test';
-
-setup('登入並儲存狀態', async ({ page }) => {
-  // 執行登入
-  await page.goto('https://www.saucedemo.com/');
-  await page.getByLabel('Username').fill('standard_user');
-  await page.getByLabel('Password').fill('secret_sauce');
-  await page.getByRole('button', { name: 'Login' }).click();
-
-  // 等待登入完成
-  await page.waitForURL('**/inventory.html');
-
-  // 狀態會自動儲存到 storageState 指定的路徑
-});
-```
-
-### 主測試使用
-
-```typescript
-// tests/ui/saucedemo/Shopping.spec.ts
-import { test, expect } from '@playwright/test';
-
-test('可以新增產品到購物車', async ({ page }) => {
-  // 已經是登入狀態，直接開始測試
-  await page.goto('https://www.saucedemo.com/inventory.html');
-  
-  await page.getByRole('button', { name: 'Add to cart' }).first().click();
-  
-  const cartBadge = page.locator('.shopping_cart_badge');
-  await expect(cartBadge).toHaveText('1');
-});
-```
-
-### 優點
-
-- ✅ **效率提升**: 避免每個測試重複登入
-- ✅ **測試隔離**: 每個測試仍然獨立執行
-- ✅ **易於維護**: 登入邏輯集中管理
-- ✅ **支援多使用者**: 可以為不同角色創建不同的 Setup
-
-### 多使用者範例
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  projects: [
-    // 標準使用者 Setup
-    {
-      name: 'ui-setup-standard',
-      testMatch: '**/setup/standard-user.setup.ts',
-      use: {
-        storageState: 'playwright/.auth/standard-user.json',
-      },
-    },
-    // 管理員 Setup
-    {
-      name: 'ui-setup-admin',
-      testMatch: '**/setup/admin-user.setup.ts',
-      use: {
-        storageState: 'playwright/.auth/admin-user.json',
-      },
-    },
-    // 標準使用者測試
-    {
-      name: 'ui-standard-user',
-      testMatch: '**/tests/standard-user/*.spec.ts',
-      dependencies: ['ui-setup-standard'],
-      use: {
-        storageState: 'playwright/.auth/standard-user.json',
-      },
-    },
-    // 管理員測試
-    {
-      name: 'ui-admin',
-      testMatch: '**/tests/admin/*.spec.ts',
-      dependencies: ['ui-setup-admin'],
-      use: {
-        storageState: 'playwright/.auth/admin-user.json',
-      },
-    },
-  ],
-});
-```
-
-## 測試執行策略
-
-### 本地開發
+## 常用執行方式
 
 ```bash
-# 執行特定測試
-pnpm playwright test Shopping.spec.ts
-
-# 執行特定專案
-pnpm playwright test --project=ui-staging
-
-# Debug 模式
-pnpm playwright test --debug
-```
-
-### CI/CD 環境
-
-```bash
-# 完整測試流程（含容器重啟）
-pnpm run test:e2e:ci
-
-# 或使用腳本
-.\scripts\test-e2e-ci.ps1  # Windows
-bash scripts/test-e2e-ci.sh  # Linux/macOS
-```
-
-## 測試組織
-
-### 按功能分組
-
-```
-tests/
-├── ui/
-│   └── saucedemo/
-│       ├── Login.setup.ts      # Setup
-│       ├── Login.spec.ts       # 登入測試
-│       ├── Shopping.spec.ts    # 購物測試
-│       └── Checkout.spec.ts    # 結帳測試
-└── api/
-    └── springboot/
-        ├── account.spec.ts     # 帳戶 API
-        ├── product.spec.ts     # 產品 API
-        └── order.spec.ts       # 訂單 API
-```
-
-### 使用標籤
-
-```typescript
-// 標記為冒煙測試
-test('基本功能檢查', { tag: '@smoke' }, async ({ page }) => {
-  // ...
-});
-
-// 標記為回歸測試
-test('完整購物流程', { tag: '@regression' }, async ({ page }) => {
-  // ...
-});
-
-// 執行特定標籤的測試
-// pnpm playwright test --grep @smoke
+pnpm test:e2e:ci                              # 重啟容器 + 清報告 + API 測試
+pnpm playwright test --project=ui-staging     # 只跑 UI（自動先跑 ui-setup）
+pnpm playwright test --project=springboot-api # 只跑 API（需先 pnpm compose-up）
+pnpm local-test-all                           # 清報告後跑全部 project
 ```
 
 ## 相關文件
 
-- [快速開始](./03-quick-start.md)
+- [`AGENTS.md`](../../AGENTS.md)
 - [CI/CD 整合](./11-cicd-integration.md)
-- [配置指南](./12-configuration-guide.md)
 - [E2E 測試清理策略](../testing/e2e-cleanup-strategy.md)

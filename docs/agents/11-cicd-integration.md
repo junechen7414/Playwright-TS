@@ -1,36 +1,28 @@
 # CI/CD 整合
 
-> 本文件說明 GitHub Actions 與 Docker Compose 配置
+> 本文件說明 `.github/workflows/` 下兩支 workflow 的設計理由與陷阱。
+> 本機指令、容器重啟策略與架構請見 [`AGENTS.md`](../../AGENTS.md)。
 
-## GitHub Actions 配置
+## 兩支 workflow 一覽
 
-本專案使用 GitHub Actions 進行自動化測試。
+| | `demo.yml`（Saucedemo UI Tests） | `springboot.yml`（Spring Boot API E2E Tests） |
+|---|---|---|
+| Project | `--project=ui-staging` | `--project=springboot-api` |
+| 執行環境 | job `container:` 用 `mcr.microsoft.com/playwright:v1.57.0-noble`（`--user 0`），瀏覽器已內建，設 `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` | 直接跑在 `ubuntu-latest` runner 上，**不用** Playwright 映像（API 測試不需要瀏覽器，且要在 runner 上啟動 compose 堆疊） |
+| 報告路徑 | `PLAYWRIGHT_HTML_REPORT=custom-report-folder` | `playwright-report/`，另附 `docs/swagger.live.json`、`spec-drift.diff` |
+| Artifact 名稱 | 皆為 `playwright-report`，保留 30 天 | 同左 |
 
-### 關鍵特點
+兩者都用 `pnpm/action-setup`（pnpm 10）+ `pnpm install --frozen-lockfile`；`demo.yml` 額外快取 pnpm store（只快取 store、不快取 `node_modules`，避免解壓大量小檔的 I/O）。
 
-#### 容器化執行
+> 升級 `@playwright/test` 時，`demo.yml` 的映像 tag 必須同步升級，否則容器內瀏覽器版本與套件不符。
 
-- 使用官方 Playwright Docker 映像檔 (`mcr.microsoft.com/playwright:v1.57.0`)
-- 預先安裝瀏覽器，省去下載時間
-- 確保環境一致性
+## 觸發條件
 
-#### 觸發條件
+兩支的觸發不同，因為 API 測試綁著上游後端 image、每次都要拉起 Oracle，成本高得多。
 
-兩支 workflow 的觸發條件不同，因為 API 測試綁著上游後端 image、成本也高得多。
+`demo.yml` 沒有外部依賴，能跑就跑：`push` / `pull_request`（`main`、`master`）與 `workflow_dispatch`。
 
-`demo.yml`（Saucedemo UI，`ui-staging`）—— 沒有外部依賴，能跑就跑：
-
-```yaml
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-```
-
-`springboot.yml`（Spring Boot API，`springboot-api`）—— 每次執行都要拉起 Oracle，因此對
-PR 額外加了標籤把關：
+`springboot.yml`：
 
 ```yaml
 on:
@@ -50,326 +42,44 @@ job 層的閘門對 `labeled` 事件只認「**這次加的**標籤是不是 `e2
 集合 —— 用 `contains()` 判斷會讓每次事件都成立，貼 N 個標籤就重複拉 N 次 Oracle。
 `synchronize` 事件的 payload 沒有 `github.event.label`，那一路仍用 `contains()` 判斷標籤存在。
 
-被測 image 的 tag 由觸發來源決定：`repository_dispatch` 取 payload 的 `image_tag`、
-`workflow_dispatch` 取輸入值，`push` / `pull_request` 則固定對接 `latest`。
+被測 image 的 tag 由觸發來源決定（`Set Image Tag` 步驟，並寫入 job summary）：`repository_dispatch` 取 payload 的 `image_tag`、
+`workflow_dispatch` 取輸入值（預設 `latest`），`push` / `pull_request` 則固定對接 `latest`。
 
-#### 環境變數管理
+## `springboot.yml` 步驟重點
 
-使用 GitHub Secrets 儲存敏感資訊：
+1. **登入 GHCR**：`docker/login-action` 以 `github.actor` + 內建的 `secrets.GITHUB_TOKEN` 登入 `ghcr.io`，不需要另設 token secret。
+2. **啟動堆疊**：`docker compose -f docker-compose.test.yml up -d --wait --quiet-pull`，接著以 `docker inspect` 確認 `spring-boot-app-test` 為 `healthy`，否則印出 app log 並失敗。`--wait` 取代任何固定秒數的等待。
+   - CI 用 `docker` 是**刻意的**：GitHub 託管 runner 內建 Docker 與 compose plugin。本機開發一律用 `podman compose`（`pnpm compose-up` 等腳本），兩者讀同一份 `docker-compose.test.yml`。
+   - compose 檔只替 `oracle-db` 定義 healthcheck；app 的 health 狀態來自後端 image 本身的 `HEALTHCHECK`。
+3. **產生 API 型別**：`pnpm run api-spec:update` 從剛啟動的容器抓 live spec；接著比對版控快照並在 job summary 提示差異（純提示、不阻擋）。原因與讀法見 [`13-advanced-techniques.md`](./13-advanced-techniques.md)。
+4. **跑測試**：`pnpm playwright test --project=springboot-api`，`BASE_URL=http://localhost:8787`。
+5. **收尾**：`docker compose down`（`if: always()`）與上傳報告。
 
-```yaml
-env:
-  DB_USER: ${{ secrets.DB_USER }}
-  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-  ORACLE_TEST_USERNAME: ${{ secrets.DB_USER }}
-  ORACLE_TEST_PASSWORD: ${{ secrets.DB_PASSWORD }}
-```
+## Secrets
 
-**必要的 Secrets**:
-- `DB_USER`: 資料庫使用者名稱
-- `DB_PASSWORD`: 資料庫密碼
-- `GHCR_TOKEN`: GitHub Container Registry 存取權杖
+| Secret | 用途 | 對應 |
+|---|---|---|
+| `DB_USER` | Oracle 測試帳號 | 傳入 compose 的 `ORACLE_TEST_USERNAME` |
+| `DB_PASSWORD` | Oracle 測試密碼 | `ORACLE_TEST_PASSWORD` |
+| `API_USERNAME` | 後端 HTTP Basic 帳號 | 同時傳給 compose（後端）與 Playwright 步驟 |
+| `API_PASSWORD` | 後端 HTTP Basic 密碼 | 同上 |
 
-### 工作流程步驟
+`GITHUB_TOKEN` 由 Actions 自動提供。`API_USERNAME` / `API_PASSWORD` 必須**同時**出現在「啟動堆疊」與「跑測試」兩個步驟的 `env`，否則後端與 Playwright 送出的標頭不一致會全面 401。兩邊在 secret 未設定時都會落回 `api` / `local-api-secret`（compose 用 `${VAR:-default}`、config 用 `||`），所以「都沒設」仍能通過，「只設一邊」才會壞。
 
-#### 1. 登入 GHCR
+## CI 與本機的設定差異
 
-```yaml
-- name: Log in to GitHub Container Registry
-  run: echo "${{ secrets.GHCR_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-```
+依 `process.env.CI` 切換（`playwright.config.ts`）：
 
-#### 2. 啟動測試環境
+| 設定 | CI | 本機 |
+|---|---|---|
+| `retries` | 2 | 0 |
+| `workers` | 2 | 3 |
+| HTML 報告 | `playwright-report/` | `playwright-report/<時間戳記>/`（`PW_DATE`） |
 
-```yaml
-- name: Start test environment
-  run: |
-    podman compose -f docker-compose.test.yml up -d
-    sleep 30  # 等待服務啟動
-```
-
-#### 3. 等待健康檢查
-
-```yaml
-- name: Wait for services to be healthy
-  run: |
-    timeout 300 bash -c 'until podman exec oracle-db-test healthcheck.sh; do sleep 5; done'
-    timeout 300 bash -c 'until curl -f http://localhost:8787/actuator/health; do sleep 5; done'
-```
-
-#### 4. 執行測試
-
-```yaml
-- name: Run Playwright tests
-  run: pnpm playwright test --project=api-e2e
-```
-
-#### 5. 上傳測試報告
-
-```yaml
-- name: Upload test report
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: playwright-report
-    path: playwright-report/
-    retention-days: 30
-```
-
-### 完整範例
-
-```yaml
-name: E2E Tests
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.57.0
-    
-    env:
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      
-      - name: Install dependencies
-        run: pnpm install
-      
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GHCR_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-      
-      - name: Start test environment
-        run: podman compose -f docker-compose.test.yml up -d
-      
-      - name: Wait for services
-        run: |
-          timeout 300 bash -c 'until curl -f http://localhost:8787/actuator/health; do sleep 5; done'
-      
-      - name: Run tests
-        run: pnpm playwright test --project=api-e2e
-      
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-```
-
-## Docker Compose 配置
-
-### 服務架構
-
-```yaml
-services:
-  app:
-    image: ghcr.io/your-org/spring-boot-app:latest
-    ports:
-      - "8787:8787"
-    depends_on:
-      oracle-db:
-        condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
-      - SPRING_DATASOURCE_USERNAME=${ORACLE_TEST_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${ORACLE_TEST_PASSWORD}
-
-  oracle-db:
-    image: container-registry.oracle.com/database/free:latest
-    ports:
-      - "1521:1521"
-    environment:
-      - ORACLE_PWD=${ORACLE_TEST_PASSWORD}
-    volumes:
-      - ./init-scripts:/opt/oracle/scripts/startup
-    healthcheck:
-      test: ["CMD", "healthcheck.sh"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-```
-
-### 環境變數配置
-
-#### Spring Boot 應用
-
-```yaml
-environment:
-  - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
-  - SPRING_DATASOURCE_USERNAME=${ORACLE_TEST_USERNAME}
-  - SPRING_DATASOURCE_PASSWORD=${ORACLE_TEST_PASSWORD}
-  - SPRING_JPA_HIBERNATE_DDL_AUTO=none
-  - SPRING_FLYWAY_ENABLED=true
-```
-
-#### Oracle Database
-
-```yaml
-environment:
-  - ORACLE_PWD=${ORACLE_TEST_PASSWORD}
-  - ORACLE_CHARACTERSET=AL32UTF8
-```
-
-### 健康檢查
-
-#### Oracle DB 健康檢查
-
-```yaml
-healthcheck:
-  test: |
-    bash -c "echo 'SELECT 1 FROM DUAL;' | 
-    sqlplus -s sys/${ORACLE_TEST_PASSWORD}@//localhost:1521/FREEPDB1 as sysdba"
-  interval: 10s
-  timeout: 5s
-  retries: 30
-  start_period: 60s
-```
-
-**檢查邏輯**:
-- 使用 SYS 使用者連接
-- 檢查 PDB 是否處於 READ WRITE 模式
-- 避免時序問題（等待 PDB 完全啟動）
-
-#### Spring Boot 健康檢查
-
-```yaml
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8787/actuator/health"]
-  interval: 10s
-  timeout: 5s
-  retries: 10
-  start_period: 30s
-```
-
-### 初始化流程
-
-1. **Oracle DB 啟動**
-   - 容器啟動
-   - 執行 `init-scripts/01_setup.sh`
-   - 創建測試使用者和權限
-
-2. **Spring Boot 啟動**
-   - 等待 Oracle DB 健康檢查通過
-   - 連接資料庫
-   - 執行 Flyway migrate
-   - 應用程式就緒
-
-3. **測試執行**
-   - 等待所有服務健康檢查通過
-   - 執行 Playwright 測試
-
-### 初始化腳本範例
-
-```bash
-#!/bin/bash
-# init-scripts/01_setup.sh
-
-sqlplus -s sys/${ORACLE_PWD}@//localhost:1521/FREEPDB1 as sysdba <<EOF
-  -- 創建測試使用者
-  CREATE USER ${ORACLE_TEST_USERNAME} IDENTIFIED BY ${ORACLE_TEST_PASSWORD};
-  
-  -- 授予權限
-  GRANT CONNECT, RESOURCE TO ${ORACLE_TEST_USERNAME};
-  GRANT CREATE SESSION TO ${ORACLE_TEST_USERNAME};
-  GRANT CREATE TABLE TO ${ORACLE_TEST_USERNAME};
-  GRANT CREATE SEQUENCE TO ${ORACLE_TEST_USERNAME};
-  GRANT UNLIMITED TABLESPACE TO ${ORACLE_TEST_USERNAME};
-  
-  EXIT;
-EOF
-```
-
-## CI/CD 策略差異
-
-### 本地開發 vs CI 環境
-
-| 設定項目 | CI 環境 | 本機開發 |
-|---------|---------|----------|
-| Retries | 2 次 | 0 次 |
-| Workers | 2 | 3 |
-| Reporter | List + HTML | List + HTML (時間戳記) |
-| Video | Retain on Failure | Off |
-| Trace | Retain on Failure | Off |
-| 容器重啟 | 每次執行 | 手動控制 |
-
-### 配置範例
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : 3,
-  reporter: process.env.CI
-    ? [['list'], ['html']]
-    : [['list'], ['html', { outputFolder: `playwright-report/${timestamp}` }]],
-  use: {
-    trace: process.env.CI ? 'retain-on-failure' : 'off',
-    video: process.env.CI ? 'retain-on-failure' : 'off',
-  },
-});
-```
-
-## 疑難排解
-
-### 容器啟動失敗
-
-```bash
-# 檢查容器狀態
-podman ps -a
-
-# 查看容器日誌
-podman logs spring-boot-app-test
-podman logs oracle-db-test
-
-# 重新啟動
-podman compose -f docker-compose.test.yml down -v
-podman compose -f docker-compose.test.yml up -d
-```
-
-### 健康檢查超時
-
-```yaml
-# 增加等待時間
-healthcheck:
-  retries: 50  # 從 30 增加到 50
-  start_period: 120s  # 從 60s 增加到 120s
-```
-
-### 測試連線失敗
-
-```bash
-# 確認服務正在運行
-curl http://localhost:8787/actuator/health
-
-# 檢查網路連接
-podman network inspect bridge
-```
+不分環境的共同設定：`trace: 'off'`、`screenshot: 'on-first-failure'`、`video: 'retain-on-failure'`（1280×960）。因為 trace 關閉，CI 失敗時的除錯依據是報告內的截圖、錄影與錯誤快照。
 
 ## 相關文件
 
+- [`AGENTS.md`](../../AGENTS.md)
 - [測試策略](./10-testing-strategies.md)
-- [快速開始](./03-quick-start.md)
-- [疑難排解](./14-troubleshooting.md)
-- [GitHub Actions 文件](https://docs.github.com/en/actions)
-- [Docker Compose 文件](https://docs.docker.com/compose/)
+- [進階技巧：API 型別與 spec 差異](./13-advanced-techniques.md)
