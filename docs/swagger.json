@@ -212,7 +212,7 @@
           "Order"
         ],
         "summary": "更新訂單內容",
-        "description": "更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單狀態與明細。",
+        "description": "更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單明細。訂單狀態不能經由此端點變更，取消訂單請用 DELETE。",
         "operationId": "updateOrder",
         "parameters": [
           {
@@ -268,7 +268,7 @@
           "Order"
         ],
         "summary": "刪除訂單",
-        "description": "刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會對訂單主檔與明細進行軟刪除，並透過商品服務歸還商品庫存。",
+        "description": "刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會軟刪除訂單主檔（明細保留不動），並透過商品服務歸還商品庫存。",
         "operationId": "deleteOrder",
         "parameters": [
           {
@@ -1154,16 +1154,6 @@
         "type": "object",
         "description": "更新訂單請求",
         "properties": {
-          "orderStatus": {
-            "type": "integer",
-            "format": "int32",
-            "description": "訂單狀態 (1001\u003d訂單建立, 1003\u003d訂單取消)",
-            "enum": [
-              1001,
-              1003
-            ],
-            "example": 1001
-          },
           "items": {
             "type": "array",
             "description": "訂單明細項目列表",
@@ -1174,8 +1164,7 @@
           }
         },
         "required": [
-          "items",
-          "orderStatus"
+          "items"
         ]
       },
       "UpdateAccountRequest": {
