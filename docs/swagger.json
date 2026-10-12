@@ -75,7 +75,7 @@
           "Product"
         ],
         "summary": "更新商品",
-        "description": "更新現有商品資訊。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。",
+        "description": "更新商品名稱、價格與可用庫存。不能改銷售狀態：下架只走 DELETE /product/{id}。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。",
         "operationId": "updateProduct",
         "parameters": [
           {
@@ -131,7 +131,7 @@
           "Product"
         ],
         "summary": "刪除商品",
-        "description": "執行商品軟刪除。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。",
+        "description": "下架商品（Delist）：軟刪除並將銷售狀態設為 1002 (UNAVAILABLE)，不可恢復。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若商品仍有保留庫存（有訂單佔用），則拋出 BusinessException（PRODUCT_STILL_HAS_RESERVATION_CAN_NOT_BE_DELETED）。",
         "operationId": "deleteProduct",
         "parameters": [
           {
@@ -149,6 +149,16 @@
         "responses": {
           "204": {
             "description": "刪除成功"
+          },
+          "400": {
+            "description": "商品仍有保留庫存",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "商品不存在",
@@ -349,7 +359,7 @@
           "Account"
         ],
         "summary": "更新帳戶",
-        "description": "更新現有帳戶資訊。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。若欲將狀態從啟用 \u0027Y\u0027 變更為停用 \u0027N\u0027，會先檢查該帳戶是否仍有關聯訂單，若有則拋出 BusinessException（ACCOUNT_STILL_HAS_ORDER_CAN_NOT_BE_DELETED）。",
+        "description": "更新帳戶名稱，不能變更狀態；要停用帳戶請改用 DELETE。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 \u0027Y\u0027，將拋出 NotFound。",
         "operationId": "updateAccount",
         "parameters": [
           {
@@ -379,7 +389,7 @@
             "description": "更新成功"
           },
           "400": {
-            "description": "參數驗證失敗或帳戶仍有關聯訂單",
+            "description": "參數驗證失敗",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1033,16 +1043,6 @@
             "description": "商品價格",
             "example": 250.0
           },
-          "saleStatus": {
-            "type": "integer",
-            "format": "int32",
-            "description": "銷售狀態 (1001\u003d可銷售, 1002\u003d不可銷售)",
-            "enum": [
-              1001,
-              1002
-            ],
-            "example": 1001
-          },
           "available": {
             "type": "integer",
             "format": "int32",
@@ -1053,8 +1053,7 @@
         "required": [
           "available",
           "name",
-          "price",
-          "saleStatus"
+          "price"
         ]
       },
       "ApiErrorResponse": {
@@ -1177,20 +1176,10 @@
             "example": "Bobby",
             "maxLength": 50,
             "minLength": 0
-          },
-          "status": {
-            "type": "string",
-            "description": "啟用狀態 (Y\u003d啟用, N\u003d停用)",
-            "enum": [
-              "Y",
-              "N"
-            ],
-            "example": "Y"
           }
         },
         "required": [
-          "name",
-          "status"
+          "name"
         ]
       },
       "CreateProductRequest": {
