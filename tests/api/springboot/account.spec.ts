@@ -90,20 +90,6 @@ test.describe('Account 帳戶管理', () => {
 		expect(errorBody.detail).toContain('has associated orders');
 	});
 
-	test('當帳戶有關聯訂單時，無法將狀態改為停用', async ({
-		springbootApi,
-		existingAccountWithOrders,
-		updateAccountData,
-	}) => {
-		const response = await springbootApi.updateAccount(existingAccountWithOrders.id, {
-			...updateAccountData,
-			status: AccountStatus.Inactive,
-		});
-
-		const errorBody = expectError(response, 400, 'ACCOUNT_STILL_HAS_ORDER_CAN_NOT_BE_DELETED');
-		expect(errorBody.detail).toContain('has associated orders');
-	});
-
 	test('啟用中的帳戶應具下單資格', async ({ springbootApi, existingAccount }) => {
 		const response = await springbootApi.getAccountOrderEligibility(existingAccount.id);
 		expectOk(response);
@@ -127,23 +113,6 @@ test.describe('Account 帳戶管理', () => {
 		expectOk(deleteResponse);
 
 		// 已軟刪除的帳戶查詢即不可見，故回 404 而非 400
-		const response = await springbootApi.getAccountOrderEligibility(existingAccount.id);
-		const errorBody = expectError(response, 404, 'RESOURCE_NOT_FOUND');
-		expect(errorBody.detail).toBe(`Account not found with id: ${existingAccount.id}`);
-	});
-
-	test('當帳戶狀態為停用時，不具下單資格', async ({
-		springbootApi,
-		existingAccount,
-		updateAccountData,
-	}) => {
-		const updateResponse = await springbootApi.updateAccount(existingAccount.id, {
-			...updateAccountData,
-			status: AccountStatus.Inactive,
-		});
-		expectOk(updateResponse);
-
-		// 停用帳戶同樣因 SQLRestriction 而不可見，回 404
 		const response = await springbootApi.getAccountOrderEligibility(existingAccount.id);
 		const errorBody = expectError(response, 404, 'RESOURCE_NOT_FOUND');
 		expect(errorBody.detail).toBe(`Account not found with id: ${existingAccount.id}`);

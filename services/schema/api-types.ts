@@ -18,13 +18,13 @@ export interface paths {
         get: operations["getProductDetail"];
         /**
          * 更新商品
-         * @description 更新現有商品資訊。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。
+         * @description 更新商品名稱、價格與可用庫存。不能改銷售狀態：下架只走 DELETE /product/{id}。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。
          */
         put: operations["updateProduct"];
         post?: never;
         /**
          * 刪除商品
-         * @description 執行商品軟刪除。受限於 SQLRestriction 規則，若商品 ID 不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將拋出 NotFound。
+         * @description 下架商品（Delist）：軟刪除並將銷售狀態設為 1002 (UNAVAILABLE)，不可恢復。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若商品仍有保留庫存（有訂單佔用），則拋出 BusinessException（PRODUCT_STILL_HAS_RESERVATION_CAN_NOT_BE_DELETED）。
          */
         delete: operations["deleteProduct"];
         options?: never;
@@ -46,13 +46,13 @@ export interface paths {
         get: operations["getOrderDetails"];
         /**
          * 更新訂單內容
-         * @description 更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單狀態與明細。
+         * @description 更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單明細。訂單狀態不能經由此端點變更，取消訂單請用 DELETE。
          */
         put: operations["updateOrder"];
         post?: never;
         /**
          * 刪除訂單
-         * @description 刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會對訂單主檔與明細進行軟刪除，並透過商品服務歸還商品庫存。
+         * @description 刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會軟刪除訂單主檔（明細保留不動），並透過商品服務歸還商品庫存。
          */
         delete: operations["deleteOrder"];
         options?: never;
@@ -74,7 +74,7 @@ export interface paths {
         get: operations["getAccountDetail"];
         /**
          * 更新帳戶
-         * @description 更新現有帳戶資訊。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 'Y'，將拋出 NotFound。若欲將狀態從啟用 'Y' 變更為停用 'N'，會先檢查該帳戶是否仍有關聯訂單，若有則拋出 BusinessException（ACCOUNT_STILL_HAS_ORDER_CAN_NOT_BE_DELETED）。
+         * @description 更新帳戶名稱，不能變更狀態；要停用帳戶請改用 DELETE。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 'Y'，將拋出 NotFound。
          */
         put: operations["updateAccount"];
         post?: never;
@@ -314,12 +314,6 @@ export interface components {
             price: number;
             /**
              * Format: int32
-             * @description 銷售狀態 (1001=可銷售, 1002=不可銷售)
-             * @example 1001
-             */
-            saleStatus: number;
-            /**
-             * Format: int32
              * @description 可用庫存數量
              * @example 100
              */
@@ -331,33 +325,33 @@ export interface components {
              * @description 問題類型的穩定識別 URI，由 code 推導而來
              * @example urn:problem:product-stock-not-enough
              */
-            type?: string;
+            type: string;
             /**
              * @description 這類問題的人類可讀摘要；同一個 code 永遠相同
              * @example 商品庫存不足
              */
-            title?: string;
+            title: string;
             /**
              * Format: int32
              * @description HTTP 狀態碼
              * @example 400
              */
-            status?: number;
+            status: number;
             /**
              * @description 本次請求的具體說明
              * @example 商品 5 庫存不足（需要 10、剩 3）
              */
-            detail?: string;
+            detail: string;
             /**
              * @description 出錯的請求路徑
              * @example /product/5/stock
              */
-            instance?: string;
+            instance: string;
             /**
-             * @description 機器可讀的穩定錯誤碼，呼叫端應以此分流
+             * @description 機器可讀的穩定錯誤碼，呼叫端應以此分流。值為 ErrorCode 的常數名；框架攔下的協定層錯誤（405、415…）則為對應的 HTTP 狀態名（METHOD_NOT_ALLOWED…）
              * @example PRODUCT_STOCK_NOT_ENOUGH
              */
-            code?: string;
+            code: string;
             /** @description 逐筆的參數驗證失敗；僅 code = VALIDATION_FAILED 時出現，其餘錯誤此欄位缺席 */
             errors?: components["schemas"]["ValidationError"][];
         };
@@ -372,7 +366,7 @@ export interface components {
              * @description 驗證失敗的原因
              * @example must not be null
              */
-            message?: string;
+            message: string;
         };
         /** @description 更新訂單明細請求 */
         UpdateOrderDetailRequest: {
@@ -391,12 +385,6 @@ export interface components {
         };
         /** @description 更新訂單請求 */
         UpdateOrderRequest: {
-            /**
-             * Format: int32
-             * @description 訂單狀態 (1001=訂單建立, 1003=訂單取消)
-             * @example 1001
-             */
-            orderStatus: number;
             /** @description 訂單明細項目列表 */
             items: components["schemas"]["UpdateOrderDetailRequest"][];
         };
@@ -407,12 +395,6 @@ export interface components {
              * @example Bobby
              */
             name: string;
-            /**
-             * @description 啟用狀態 (Y=啟用, N=停用)
-             * @example Y
-             * @enum {string}
-             */
-            status: "Y" | "N";
         };
         /** @description 建立商品請求 */
         CreateProductRequest: {
@@ -525,8 +507,9 @@ export interface components {
              * Format: int32
              * @description 銷售狀態 (1001=可銷售, 1002=不可銷售)
              * @example 1001
+             * @enum {integer}
              */
-            saleStatus?: number;
+            saleStatus?: 1001 | 1002;
             /**
              * Format: int32
              * @description 可用庫存數量
@@ -585,8 +568,9 @@ export interface components {
              * Format: int32
              * @description 銷售狀態 (1001=可銷售, 1002=不可銷售)
              * @example 1001
+             * @enum {integer}
              */
-            saleStatus?: number;
+            saleStatus?: 1001 | 1002;
             /**
              * Format: int32
              * @description 可用庫存數量
@@ -606,8 +590,9 @@ export interface components {
              * Format: int32
              * @description 訂單狀態 (1001=訂單建立, 1003=訂單取消)
              * @example 1001
+             * @enum {integer}
              */
-            orderStatus?: number;
+            orderStatus?: 1001 | 1003;
             /**
              * @description 訂單總金額
              * @example 500
@@ -653,8 +638,9 @@ export interface components {
              * Format: int32
              * @description 訂單狀態 (1001=訂單建立, 1003=訂單取消)
              * @example 1001
+             * @enum {integer}
              */
-            status?: number;
+            status?: 1001 | 1003;
             /**
              * @description 訂單總金額
              * @example 500
@@ -873,6 +859,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description 商品仍有保留庫存 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiErrorResponse"];
+                };
+            };
             /** @description 商品不存在 */
             404: {
                 headers: {
@@ -1059,7 +1054,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 參數驗證失敗或帳戶仍有關聯訂單 */
+            /** @description 參數驗證失敗 */
             400: {
                 headers: {
                     [name: string]: unknown;

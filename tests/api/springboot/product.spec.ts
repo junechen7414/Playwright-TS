@@ -45,6 +45,34 @@ test.describe('Product 商品管理', () => {
 		expectError(getResponse, 404);
 	});
 
+	test('當商品仍有保留庫存時，無法刪除', async ({ springbootApi, existingOrder }) => {
+		// existingOrder 建立時已替該商品保留庫存
+		const response = await springbootApi.deleteProduct(existingOrder.productId);
+		const errorBody = expectError(
+			response,
+			400,
+			'PRODUCT_STILL_HAS_RESERVATION_CAN_NOT_BE_DELETED',
+		);
+
+		expect(errorBody.detail).toContain('cannot be delisted');
+
+		// 被拒絕後商品仍在
+		expectOk(await springbootApi.getProduct(existingOrder.productId));
+	});
+
+	test('當佔用庫存的訂單取消後，商品即可刪除', async ({ springbootApi, existingOrder }) => {
+		// 取消訂單會釋放保留庫存，保留量歸零後才能下架
+		const cancelResponse = await springbootApi.deleteOrder(existingOrder.id);
+		expectOk(cancelResponse);
+
+		const response = await springbootApi.deleteProduct(existingOrder.productId);
+		expectOk(response);
+		expect(response.status).toBe(204);
+
+		const getResponse = await springbootApi.getProduct(existingOrder.productId);
+		expectError(getResponse, 404);
+	});
+
 	test('應該能查詢商品列表（預設分頁）', async ({ springbootApi }) => {
 		const response = await springbootApi.listProducts();
 		const pageResponse = expectOk(response);
@@ -108,7 +136,6 @@ test.describe('Product 商品管理', () => {
 		const response = await springbootApi.updateProduct(secondProduct.id, {
 			name: firstProduct.name,
 			price: updateProductData.price,
-			saleStatus: updateProductData.saleStatus,
 			available: updateProductData.available,
 		});
 

@@ -1,5 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
-import type { components, PageResponse } from '@schema/api-types';
+import type { components } from '@schema/api-types';
+import type { PageResponse } from '@schema/common-types';
 import { ApiRequester, type ApiResult, type CreatedResponse } from './base-api-client';
 
 type Schemas = components['schemas'];
@@ -97,8 +98,8 @@ export class SpringbootApiClient {
 
 	updateProduct(id: number, payload: Schemas['UpdateProductRequest']): Promise<ApiResult<void>> {
 		// 排除不屬於 schema 的欄位（如 id）
-		const { name, price, saleStatus, available } = payload;
-		const params = this.filterUndefined({ name, price, saleStatus, available });
+		const { name, price, available } = payload;
+		const params = this.filterUndefined({ name, price, available });
 		return this.requester.put<void>(`${this.endpoints.product}/${id}`, { data: params });
 	}
 

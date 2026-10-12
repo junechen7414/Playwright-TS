@@ -3,7 +3,6 @@
 import { expectCreated, expectError, expectOk } from '@apis/base-api-client';
 import { test } from '@fixtures/springboot-chained.fixture';
 import { expect } from '@playwright/test';
-import { AccountStatus, OrderStatus, ProductSaleStatus } from '@schema/constants';
 
 test.describe('Order 訂單管理 (含明細更新)', () => {
 	test('應該能建立新訂單', async ({
@@ -20,19 +19,15 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		expect(typeof orderId).toBe('number');
 	});
 
-	test('當帳戶狀態為無效時，無法建立新訂單', async ({
+	test('當帳戶已停用時，無法建立新訂單', async ({
 		springbootApi,
 		existingAccount,
 		existingProduct,
 		newOrderData,
-		updateAccountData,
 	}) => {
-		// 將帳戶狀態設為無效
-		const updateResponse = await springbootApi.updateAccount(existingAccount.id, {
-			...updateAccountData,
-			status: AccountStatus.Inactive,
-		});
-		expectOk(updateResponse);
+		// 停用帳戶只走 DELETE，PUT 已不能改帳戶狀態
+		const deleteResponse = await springbootApi.deleteAccount(existingAccount.id);
+		expectOk(deleteResponse);
 
 		const response = await springbootApi.createOrder(
 			newOrderData(existingAccount.id, existingProduct.id),
@@ -42,19 +37,16 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		expect(errorBody.detail).toBe(`Account not found with id: ${existingAccount.id}`);
 	});
 
-	test('當商品狀態為無效時，無法建立新訂單', async ({
+	test('當商品已下架時，無法建立新訂單', async ({
 		springbootApi,
 		existingAccount,
 		existingProduct,
 		newOrderData,
-		updateProductData,
 	}) => {
-		// 將商品狀態設為無效
-		const updateResponse = await springbootApi.updateProduct(existingProduct.id, {
-			...updateProductData,
-			saleStatus: ProductSaleStatus.Inactive,
-		});
-		expectOk(updateResponse);
+		// 下架商品只走 DELETE，PUT 已不能改銷售狀態。
+		// existingProduct 沒有任何訂單、保留量為 0，不會被「仍有保留量時不能下架」擋下
+		const deleteResponse = await springbootApi.deleteProduct(existingProduct.id);
+		expectOk(deleteResponse);
 
 		const response = await springbootApi.createOrder(
 			newOrderData(existingAccount.id, existingProduct.id),
@@ -64,7 +56,7 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		expect(errorBody.detail).toBe(`Products not found with IDs: ${existingProduct.id}`);
 	});
 
-	test('應該能更新訂單明細數量與狀態', async ({
+	test('應該能更新訂單明細', async ({
 		springbootApi,
 		existingOrder,
 		existingProduct,
@@ -179,27 +171,8 @@ test.describe('Order 訂單管理 (含明細更新)', () => {
 		expect(existence.hasActiveOrder).toBe(true);
 	});
 
-	test('當訂單狀態不再是 1001 時，應回報沒有有效訂單', async ({
-		springbootApi,
-		existingOrder,
-		existingProduct,
-		updateOrderData,
-	}) => {
-		// 僅有狀態 1001 才算有效訂單，這裡改成 1003（已取消）——
-		// 後端 OrderStatus 唯一的非 1001 狀態
-		const updateResponse = await springbootApi.updateOrder(existingOrder.id, {
-			...updateOrderData(existingProduct.id),
-			orderStatus: OrderStatus.Cancelled,
-		});
-		expectOk(updateResponse);
-
-		const response = await springbootApi.getOrderExistence(existingOrder.accountId);
-		const existence = expectOk(response);
-
-		expect(existence.hasActiveOrder).toBe(false);
-	});
-
 	test('當訂單被刪除後，應回報沒有有效訂單', async ({ springbootApi, existingOrder }) => {
+		// 取消訂單只走 DELETE（會一併釋放保留庫存），PUT 已不能改訂單狀態
 		const deleteResponse = await springbootApi.deleteOrder(existingOrder.id);
 		expectOk(deleteResponse);
 
