@@ -24,8 +24,9 @@ This file provides guidance to agents (Claude Code, GitHub Copilot, etc.) when w
 ```bash
 pnpm playwright test --project=ui-staging   # UI 測試（會連帶跑 ui-setup 登入）
 pnpm test:e2e             # API 測試（需容器已啟動）
-pnpm compose-restart      # down -v + up，重置測試隔離狀態
-pnpm test:e2e:ci          # compose-restart + clean + API 測試（完整 CI 流程）
+pnpm compose-restart      # down -v + up，重置測試隔離狀態（不等 app 就緒）
+pnpm compose-wait         # 輪詢 /actuator/health 直到 app 回報 UP（預設最多 180 秒）
+pnpm test:e2e:ci          # compose-restart + compose-wait + clean + API 測試（完整 CI 流程）
 pnpm playwright show-report
 
 # 重新產生 API 型別 -> services/schema/api-types.ts

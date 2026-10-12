@@ -42,7 +42,7 @@ podman logs --tail 100 spring-boot-app-test
 
 ## 4. 連線
 
-- `ECONNREFUSED ...:8787` 表示 app 尚未就緒，或 port 被占用。
+- `ECONNREFUSED ...:8787` 或 `socket hang up` 表示 app 尚未就緒，或 port 被占用。`compose-up` 只等 DB healthy，不等 app，Spring Boot 啟動要再花 30–100 秒；本機 podman 也沒套用 image 的 HEALTHCHECK。手動跑測試前先執行 `pnpm compose-wait`（`test:e2e:ci` 已內建）。
 - 健康狀態：`curl http://localhost:8787/actuator/health`。
 - Port 占用：PowerShell 用 `netstat -ano | findstr :8787`（1521 同理）。
 - `ORA-12541: TNS:no listener`，或連線字串缺少 PDB 名稱：容器內正確的連線字串是 `jdbc:oracle:thin:@oracle-db:1521/FREEPDB1`，主機端則用 `localhost:1521/FREEPDB1`。
