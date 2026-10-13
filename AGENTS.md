@@ -62,7 +62,7 @@ pnpm api-spec:update:file # 離線：改用版控裡的 docs/swagger.json 快照
   - `apis/`：
     - `base-api-client.ts` 提供 `ApiRequester`（採組合而非繼承），回傳 `ApiResult<T>`，並提供 `expectOk` / `expectError` 斷言輔助函式。
     - `springboot-api-client.ts` 封裝具體端點。
-  - `schema/`：`api-types.ts` 由 `api-spec:update` **自動產生**，修改型別時重新產生，不手動編輯。另有 `constants.ts`、`common-types.ts`。
+  - `schema/`：`api-types.ts` 由 `api-spec:update` **自動產生**，修改型別時重新產生，不手動編輯。另有 `common-types.ts`。
   - `fixtures/`：依賴注入層（見下方）。
 
 ### Fixtures 是組合的核心

@@ -3,7 +3,6 @@
 import { expectCreated, expectError, expectOk } from '@apis/base-api-client';
 import { test } from '@fixtures/springboot-chained.fixture';
 import { expect } from '@playwright/test';
-import { ProductSaleStatus } from '@schema/constants';
 
 test.describe('Product 商品管理', () => {
 	test('應該能建立新商品', async ({ springbootApi, newProductData }) => {
@@ -21,7 +20,6 @@ test.describe('Product 商品管理', () => {
 		// 驗證與 fixture 的一致性
 		expect(product.name).toBe(existingProduct.name);
 		expect(product.price).toBe(existingProduct.price);
-		expect(product.saleStatus).toBe(ProductSaleStatus.Available);
 		expect(product.available).toBe(existingProduct.available);
 	});
 

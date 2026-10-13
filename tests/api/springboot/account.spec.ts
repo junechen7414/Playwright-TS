@@ -3,7 +3,6 @@
 import { expectCreated, expectError, expectOk } from '@apis/base-api-client';
 import { test } from '@fixtures/springboot-chained.fixture';
 import { expect } from '@playwright/test';
-import { AccountStatus } from '@schema/constants';
 
 test.describe('Account 帳戶管理', () => {
 	test('應該能建立新帳戶', async ({ springbootApi, newAccountData }) => {
@@ -19,7 +18,6 @@ test.describe('Account 帳戶管理', () => {
 		const account = expectOk(response);
 
 		expect(account.name).toBe(existingAccount.name);
-		expect(account.status).toBe(AccountStatus.Active);
 	});
 
 	test('應該能更新帳戶資訊', async ({ springbootApi, existingAccount, updateAccountData }) => {

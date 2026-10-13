@@ -2,17 +2,15 @@ import { expectCreated, expectOk } from '@apis/base-api-client';
 import { SpringbootApiClient } from '@apis/springboot-api-client';
 import { faker } from '@faker-js/faker';
 import { test as baseTest } from '@playwright/test';
-import { AccountStatus } from '@schema/constants';
 
 type SpringbootApiFixtures = {
 	springbootApi: SpringbootApiClient;
-	existingAccount: { id: number; name: string; status: string };
-	existingAccountWithOrders: { id: number; name: string; status: string };
+	existingAccount: { id: number; name: string };
+	existingAccountWithOrders: { id: number; name: string };
 	existingProduct: {
 		id: number;
 		name: string;
 		price: number;
-		saleStatus: number;
 		available: number;
 	};
 	existingMultipleProducts: [
@@ -20,14 +18,12 @@ type SpringbootApiFixtures = {
 			id: number;
 			name: string;
 			price: number;
-			saleStatus: number;
 			available: number;
 		},
 		{
 			id: number;
 			name: string;
 			price: number;
-			saleStatus: number;
 			available: number;
 		},
 	];
@@ -40,7 +36,6 @@ type SpringbootApiFixtures = {
 	existingAccountWithMultipleOrders: {
 		id: number;
 		name: string;
-		status: string;
 		orderIds: number[];
 	};
 };
@@ -56,7 +51,7 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		const response = await springbootApi.createAccount({ name: accountName });
 		const accountId = expectCreated(response, '/account');
 
-		await use({ id: accountId, name: accountName, status: AccountStatus.Active });
+		await use({ id: accountId, name: accountName });
 	},
 
 	existingProduct: async ({ springbootApi }, use) => {
@@ -77,7 +72,6 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 			id: productId,
 			name: product.name ?? '',
 			price: product.price ?? 0,
-			saleStatus: product.saleStatus ?? 1001,
 			available: product.available ?? 0,
 		});
 	},
@@ -112,14 +106,12 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 				id: product1Id,
 				name: product1.name ?? '',
 				price: product1.price ?? 0,
-				saleStatus: product1.saleStatus ?? 1001,
 				available: product1.available ?? 0,
 			},
 			{
 				id: product2Id,
 				name: product2.name ?? '',
 				price: product2.price ?? 0,
-				saleStatus: product2.saleStatus ?? 1001,
 				available: product2.available ?? 0,
 			},
 		]);
@@ -153,7 +145,7 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		});
 		expectCreated(orderResponse, '/order');
 
-		await use({ id: accountId, name: accountName, status: AccountStatus.Active });
+		await use({ id: accountId, name: accountName });
 	},
 
 	existingAccountWithMultipleOrders: async ({ springbootApi, existingProduct }, use) => {
@@ -180,7 +172,6 @@ export const springbootApiTest = baseTest.extend<SpringbootApiFixtures>({
 		await use({
 			id: accountId,
 			name: accountName,
-			status: AccountStatus.Active,
 			orderIds: orderIds,
 		});
 	},
