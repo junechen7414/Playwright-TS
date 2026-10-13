@@ -7,16 +7,18 @@
 # 4. Execute E2E tests
 # 5. Clean up test environment (optional)
 
-$ErrorActionPreference = "Stop"
+# Do not use "Stop": in Windows PowerShell 5.1, when the caller redirects stderr (e.g. 2>&1),
+# every stderr line from a native command (podman prints a banner there) becomes an ErrorRecord
+# and "Stop" turns it into a terminating error. Native commands are checked via $LASTEXITCODE instead.
+$ErrorActionPreference = "Continue"
 
 Write-Host "Starting E2E test process (container restart strategy)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
 # 1. Stop and remove existing containers
 Write-Host "`nStep 1: Stopping and removing existing containers..." -ForegroundColor Yellow
-try {
-    podman compose -f docker-compose.test.yml down -v
-} catch {
+podman compose -f docker-compose.test.yml down -v
+if ($LASTEXITCODE -ne 0) {
     Write-Host "   (Ignoring cleanup errors, containers may not exist)" -ForegroundColor Gray
 }
 
@@ -27,6 +29,10 @@ try {
 # 3. Start test environment
 Write-Host "`nStep 2: Starting test environment..." -ForegroundColor Yellow
 podman compose -f docker-compose.test.yml up -d
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Failed to start test environment (exit code $LASTEXITCODE)" -ForegroundColor Red
+    exit 1
+}
 
 # 4. Wait for Spring Boot to report UP on /actuator/health
 #    compose up -d only waits for the DB to be healthy; the app still needs 30-100s to start.
@@ -40,12 +46,8 @@ if ($LASTEXITCODE -ne 0) {
 
 # 5. Execute tests
 Write-Host "`nStep 4: Executing E2E tests..." -ForegroundColor Yellow
-try {
-    pnpm run test:e2e
-    $testExitCode = $LASTEXITCODE
-} catch {
-    $testExitCode = 1
-}
+pnpm run test:e2e
+$testExitCode = $LASTEXITCODE
 
 # 6. Display test results
 Write-Host "`n========================================" -ForegroundColor Cyan
@@ -54,7 +56,7 @@ if ($testExitCode -eq 0) {
 } else {
     Write-Host "Tests failed!" -ForegroundColor Red
     Write-Host "`nApplication logs:" -ForegroundColor Yellow
-    podman compose -f docker-compose.test.yml logs spring-boot-app-test --tail=100
+    podman compose -f docker-compose.test.yml logs app --tail=100
 }
 
 # 7. Cleanup (optional, enable as needed)

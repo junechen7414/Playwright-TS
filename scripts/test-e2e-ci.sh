@@ -54,7 +54,7 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
 else
     echo -e "${RED}❌ 測試失敗！${NC}"
     echo -e "${YELLOW}📋 應用程式日誌：${NC}"
-    docker-compose -f docker-compose.test.yml logs spring-boot-app-test --tail=100
+    docker-compose -f docker-compose.test.yml logs app --tail=100
 fi
 
 # 7. 清理（可選，根據需求啟用）
