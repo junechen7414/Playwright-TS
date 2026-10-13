@@ -13,18 +13,18 @@ export interface paths {
         };
         /**
          * 獲取單一商品詳細資訊
-         * @description 根據 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，將回傳 NotFound。
+         * @description 根據 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在或已下架，將回傳 NotFound。
          */
         get: operations["getProductDetail"];
         /**
          * 更新商品
-         * @description 更新商品名稱、價格與可用庫存。不能改銷售狀態：下架只走 DELETE /product/{id}。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。
+         * @description 更新商品名稱、價格與可用庫存。下架只走 DELETE /product/{id}。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若嘗試更改為已存在的商品名稱，則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。
          */
         put: operations["updateProduct"];
         post?: never;
         /**
          * 刪除商品
-         * @description 下架商品（Delist）：軟刪除並將銷售狀態設為 1002 (UNAVAILABLE)，不可恢復。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若商品仍有保留庫存（有訂單佔用），則拋出 BusinessException（PRODUCT_STILL_HAS_RESERVATION_CAN_NOT_BE_DELETED）。
+         * @description 下架商品（Delist）：軟刪除，不可恢復。受限於 SQLRestriction 規則，若商品 ID 不存在或已下架，將拋出 NotFound。若商品仍有保留庫存（有訂單佔用），則拋出 BusinessException（PRODUCT_STILL_HAS_RESERVATION_CAN_NOT_BE_DELETED）。
          */
         delete: operations["deleteProduct"];
         options?: never;
@@ -41,18 +41,18 @@ export interface paths {
         };
         /**
          * 獲取訂單詳細資訊
-         * @description 獲取指定訂單的詳細資訊。受限於SQLRestriction規則，若訂單不存在、已被軟刪除或狀態非 1001 (CREATED)，將回傳 NotFound。
+         * @description 獲取指定訂單的詳細資訊。受限於SQLRestriction規則，若訂單不存在或已取消，將回傳 NotFound。
          */
         get: operations["getOrderDetails"];
         /**
          * 更新訂單內容
-         * @description 更新訂單內容。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單明細。訂單狀態不能經由此端點變更，取消訂單請用 DELETE。
+         * @description 更新訂單內容。若訂單不存在或已取消，將拋出 NotFound。接著檢查重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），並透過商品服務調整庫存（包含歸還舊品項庫存與扣除新品項庫存），最後更新訂單明細。取消訂單請用 DELETE。
          */
         put: operations["updateOrder"];
         post?: never;
         /**
          * 刪除訂單
-         * @description 刪除訂單。若訂單不存在、已軟刪除或狀態非 1001 (CREATED)，將拋出 NotFound。執行時會軟刪除訂單主檔（明細保留不動），並透過商品服務歸還商品庫存。
+         * @description 取消訂單（Cancel）。若訂單不存在或已取消，將拋出 NotFound。執行時會軟刪除訂單主檔（明細保留不動），並透過商品服務歸還商品庫存。
          */
         delete: operations["deleteOrder"];
         options?: never;
@@ -69,18 +69,18 @@ export interface paths {
         };
         /**
          * 獲取帳戶詳細資訊
-         * @description 根據 ID 獲取帳戶詳細資訊。受限於 SQLRestriction 規則，若帳戶不存在、已軟刪除或狀態非啟用 'Y'，將拋出 NotFound。
+         * @description 根據 ID 獲取帳戶詳細資訊。受限於 SQLRestriction 規則，若帳戶不存在或已停用，將拋出 NotFound。
          */
         get: operations["getAccountDetail"];
         /**
          * 更新帳戶
-         * @description 更新帳戶名稱，不能變更狀態；要停用帳戶請改用 DELETE。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 'Y'，將拋出 NotFound。
+         * @description 更新帳戶名稱；要停用帳戶請改用 DELETE。受限於 SQLRestriction 規則，若帳戶 ID 不存在或已停用，將拋出 NotFound。
          */
         put: operations["updateAccount"];
         post?: never;
         /**
          * 刪除帳戶
-         * @description 執行帳戶軟刪除。受限於 SQLRestriction 規則，若帳戶 ID 不存在、已軟刪除或狀態非啟用 'Y'，將拋出 NotFound。若該帳戶仍有關聯訂單，則拋出 BusinessException（ACCOUNT_STILL_HAS_ORDER_CAN_NOT_BE_DELETED）。
+         * @description 停用帳戶（Deactivate）：軟刪除，不可恢復。受限於 SQLRestriction 規則，若帳戶 ID 不存在或已停用，將拋出 NotFound。若該帳戶仍有關聯訂單，則拋出 BusinessException（ACCOUNT_STILL_HAS_ORDER_CAN_NOT_BE_DELETED）。
          */
         delete: operations["deleteAccount"];
         options?: never;
@@ -97,13 +97,13 @@ export interface paths {
         };
         /**
          * 獲取商品列表（分頁）
-         * @description 獲取所有商品的分頁列表。受限於 SQLRestriction 規則，僅會回傳未被軟刪除且銷售狀態為 1001 (AVAILABLE) 的商品。
+         * @description 獲取所有商品的分頁列表。受限於 SQLRestriction 規則，僅會回傳未下架（未軟刪除）的商品。
          */
         get: operations["getProductList"];
         put?: never;
         /**
          * 新增商品
-         * @description 建立新商品。若已存在同名商品則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。成功則新增商品資料，預設銷售狀態為 1001 (AVAILABLE)。
+         * @description 建立新商品。若已存在同名商品則拋出 BusinessException（PRODUCT_ALREADY_EXIST）。成功則新增商品資料。
          */
         post: operations["createProduct"];
         delete?: never;
@@ -183,7 +183,7 @@ export interface paths {
         put?: never;
         /**
          * 建立新訂單
-         * @description 建立新訂單。先驗證帳戶具下單資格（受 SQLRestriction 限制，停用或不存在的帳戶一律回傳 NotFound），檢查訂單內是否有重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），最後透過商品服務預留庫存（商品不可銷售視為 NotFound、庫存不足則拋出 BusinessException（PRODUCT_STOCK_NOT_ENOUGH））。成功則新增訂單主檔（預設狀態 1001）與明細。
+         * @description 建立新訂單。先驗證帳戶具下單資格（受 SQLRestriction 限制，停用或不存在的帳戶一律回傳 NotFound），檢查訂單內是否有重複商品（重複則拋出 BusinessException（INVALID_REQUEST）），最後透過商品服務預留庫存（商品不可銷售視為 NotFound、庫存不足則拋出 BusinessException（PRODUCT_STOCK_NOT_ENOUGH））。成功則新增訂單與 Order Line。
          */
         post: operations["createOrder"];
         delete?: never;
@@ -201,13 +201,13 @@ export interface paths {
         };
         /**
          * 獲取帳戶列表（分頁）
-         * @description 獲取所有帳戶的分頁列表。受限於 SQLRestriction 規則，僅會回傳未軟刪除且狀態為啟用 'Y' 的帳戶。
+         * @description 獲取所有帳戶的分頁列表。受限於 SQLRestriction 規則，僅會回傳未停用（未軟刪除）的帳戶。
          */
         get: operations["getAccountList"];
         put?: never;
         /**
          * 建立新帳戶
-         * @description 建立新帳戶。成功則新增帳戶資料，預設狀態為啟用 'Y'。
+         * @description 建立新帳戶。
          */
         post: operations["createAccount"];
         delete?: never;
@@ -225,7 +225,7 @@ export interface paths {
         };
         /**
          * 批量獲取商品詳細資訊
-         * @description 根據多個 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在、已軟刪除或銷售狀態非 1001 (AVAILABLE)，該 ID 將被忽略。
+         * @description 根據多個 ID 獲取商品詳細資訊。受限於 SQLRestriction 規則，若商品不存在或已下架，該 ID 將被忽略。
          */
         get: operations["getProductBatch"];
         put?: never;
@@ -245,7 +245,7 @@ export interface paths {
         };
         /**
          * 獲取帳戶訂單清單（分頁）
-         * @description 獲取該帳戶的所有有效訂單分頁清單。受限於SQLRestriction規則，僅會回傳未被軟刪除且狀態為 1001 (CREATED) 的訂單。
+         * @description 獲取該帳戶的所有有效訂單分頁清單。受限於SQLRestriction規則，僅會回傳未取消（未軟刪除）的訂單。
          */
         get: operations["getOrderList"];
         put?: never;
@@ -265,7 +265,7 @@ export interface paths {
         };
         /**
          * 查詢帳戶是否仍有有效訂單
-         * @description 內部使用：判斷帳戶是否有關聯的有效訂單，用於帳戶更新與刪除時的檢核。受限於系統規則，僅會針對未軟刪除且狀態為 1001 (CREATED) 的訂單進行判定。true 與 false 都是查詢成功，故一律回 200 帶 body。
+         * @description 內部使用：判斷帳戶是否有關聯的有效訂單，用於帳戶更新與刪除時的檢核。受限於系統規則，僅會針對未取消（未軟刪除）的訂單進行判定。true 與 false 都是查詢成功，故一律回 200 帶 body。
          */
         get: operations["getOrderExistence"];
         put?: never;
@@ -285,7 +285,7 @@ export interface paths {
         };
         /**
          * 驗證帳戶下單資格
-         * @description 內部使用：驗證帳戶是否具下單資格。受限於 SQLRestriction 規則，停用或已軟刪除的帳戶查詢即不可見，故帳戶不存在、已軟刪除或狀態非啟用 'Y' 時一律回傳 NotFound。
+         * @description 內部使用：驗證帳戶是否具下單資格。受限於 SQLRestriction 規則，已停用（軟刪除）的帳戶查詢即不可見，故帳戶不存在或已停用時一律回傳 NotFound。
          */
         get: operations["assertCanPlaceOrder"];
         put?: never;
@@ -505,13 +505,6 @@ export interface components {
             price?: number;
             /**
              * Format: int32
-             * @description 銷售狀態 (1001=可銷售, 1002=不可銷售)
-             * @example 1001
-             * @enum {integer}
-             */
-            saleStatus?: 1001 | 1002;
-            /**
-             * Format: int32
              * @description 可用庫存數量
              * @example 100
              */
@@ -566,13 +559,6 @@ export interface components {
             price?: number;
             /**
              * Format: int32
-             * @description 銷售狀態 (1001=可銷售, 1002=不可銷售)
-             * @example 1001
-             * @enum {integer}
-             */
-            saleStatus?: 1001 | 1002;
-            /**
-             * Format: int32
              * @description 可用庫存數量
              * @example 100
              */
@@ -586,13 +572,6 @@ export interface components {
              * @example 1
              */
             accountId?: number;
-            /**
-             * Format: int32
-             * @description 訂單狀態 (1001=訂單建立, 1003=訂單取消)
-             * @example 1001
-             * @enum {integer}
-             */
-            orderStatus?: 1001 | 1003;
             /**
              * @description 訂單總金額
              * @example 500
@@ -635,13 +614,6 @@ export interface components {
              */
             orderId?: number;
             /**
-             * Format: int32
-             * @description 訂單狀態 (1001=訂單建立, 1003=訂單取消)
-             * @example 1001
-             * @enum {integer}
-             */
-            status?: 1001 | 1003;
-            /**
              * @description 訂單總金額
              * @example 500
              */
@@ -679,7 +651,7 @@ export interface components {
         /** @description 帳戶訂單存在性查詢結果（內部使用） */
         OrderExistenceResponse: {
             /**
-             * @description 該帳戶是否仍有未軟刪除且狀態為 1001 (CREATED) 的訂單
+             * @description 該帳戶是否仍有未取消（未軟刪除）的訂單
              * @example true
              */
             hasActiveOrder: boolean;
@@ -697,12 +669,6 @@ export interface components {
              * @example Bobby
              */
             name?: string;
-            /**
-             * @description 啟用狀態 (Y=啟用, N=停用)
-             * @example Y
-             * @enum {string}
-             */
-            status?: "Y" | "N";
         };
         /** @description 分頁回應 */
         PageResponseGetAccountListResponse: {
@@ -740,12 +706,6 @@ export interface components {
              * @example Bobby
              */
             name?: string;
-            /**
-             * @description 啟用狀態 (Y=啟用, N=停用)
-             * @example Y
-             * @enum {string}
-             */
-            status?: "Y" | "N";
         };
     };
     responses: never;
