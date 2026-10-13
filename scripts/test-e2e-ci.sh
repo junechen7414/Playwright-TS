@@ -5,7 +5,7 @@
 # 此腳本會：
 # 1. 停止並刪除現有的測試容器和 volumes
 # 2. 重新啟動測試環境（Spring Boot + Oracle DB）
-# 3. 等待服務健康檢查通過
+# 3. 等待應用程式回報 UP（pnpm run compose-wait）
 # 4. 執行 E2E 測試
 # 5. 清理測試環境（可選）
 
@@ -32,40 +32,14 @@ docker-compose -f docker-compose.test.yml down -v || true
 echo -e "\n${YELLOW}🔄 步驟 2: 啟動測試環境...${NC}"
 docker-compose -f docker-compose.test.yml up -d
 
-# 4. 等待服務健康檢查通過
-echo -e "\n${YELLOW}⏳ 步驟 3: 等待服務健康檢查...${NC}"
-MAX_WAIT=300  # 最多等待 5 分鐘
-WAIT_TIME=0
-INTERVAL=10
-
-while [ $WAIT_TIME -lt $MAX_WAIT ]; do
-    # 檢查 Oracle DB 健康狀態
-    DB_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' oracle-db-test 2>/dev/null || echo "not_found")
-    
-    # 檢查 Spring Boot 容器狀態
-    APP_STATUS=$(docker inspect --format='{{.State.Status}}' spring-boot-app-test 2>/dev/null || echo "not_found")
-    
-    echo "   DB Health: $DB_HEALTH | App Status: $APP_STATUS | 已等待: ${WAIT_TIME}s"
-    
-    if [ "$DB_HEALTH" = "healthy" ] && [ "$APP_STATUS" = "running" ]; then
-        echo -e "${GREEN}✅ 服務已就緒！${NC}"
-        break
-    fi
-    
-    if [ $WAIT_TIME -ge $MAX_WAIT ]; then
-        echo -e "${RED}❌ 等待超時！服務未能在 ${MAX_WAIT} 秒內就緒${NC}"
-        echo -e "${YELLOW}📋 容器日誌：${NC}"
-        docker-compose -f docker-compose.test.yml logs --tail=50
-        exit 1
-    fi
-    
-    sleep $INTERVAL
-    WAIT_TIME=$((WAIT_TIME + INTERVAL))
-done
-
-# 額外等待 10 秒確保 Spring Boot 完全啟動
-echo -e "\n${YELLOW}⏳ 額外等待 10 秒確保應用程式完全啟動...${NC}"
-sleep 10
+# 4. 等待 Spring Boot 在 /actuator/health 回報 UP
+#    compose up -d 只等到 DB healthy，app 本身還要 30–100 秒才開始接請求
+echo -e "\n${YELLOW}⏳ 步驟 3: 等待應用程式就緒...${NC}"
+if ! pnpm run compose-wait; then
+    echo -e "${YELLOW}📋 容器日誌：${NC}"
+    docker-compose -f docker-compose.test.yml logs --tail=50
+    exit 1
+fi
 
 # 5. 執行測試
 echo -e "\n${YELLOW}🧪 步驟 4: 執行 E2E 測試...${NC}"

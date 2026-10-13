@@ -3,7 +3,7 @@
 # This script will:
 # 1. Stop and remove existing test containers and volumes
 # 2. Restart test environment (Spring Boot + Oracle DB)
-# 3. Wait for service health checks to pass
+# 3. Wait for the application to report UP (pnpm run compose-wait)
 # 4. Execute E2E tests
 # 5. Clean up test environment (optional)
 
@@ -28,48 +28,15 @@ try {
 Write-Host "`nStep 2: Starting test environment..." -ForegroundColor Yellow
 podman compose -f docker-compose.test.yml up -d
 
-# 4. Wait for service health checks to pass
-Write-Host "`nStep 3: Waiting for service health checks..." -ForegroundColor Yellow
-$maxWait = 300  # Maximum wait time: 5 minutes
-$waitTime = 0
-$interval = 10
-
-while ($waitTime -lt $maxWait) {
-    # Check Oracle DB health status
-    try {
-        $dbHealth = podman inspect --format='{{.State.Health.Status}}' oracle-db-test 2>$null
-    } catch {
-        $dbHealth = "not_found"
-    }
-    
-    # Check Spring Boot container status
-    try {
-        $appStatus = podman inspect --format='{{.State.Status}}' spring-boot-app-test 2>$null
-    } catch {
-        $appStatus = "not_found"
-    }
-    
-    Write-Host "   DB Health: $dbHealth | App Status: $appStatus | Waited: ${waitTime}s" -ForegroundColor Gray
-    
-    if ($dbHealth -eq "healthy" -and $appStatus -eq "running") {
-        Write-Host "Services are ready!" -ForegroundColor Green
-        break
-    }
-    
-    if ($waitTime -ge $maxWait) {
-        Write-Host "Timeout! Services did not become ready within $maxWait seconds" -ForegroundColor Red
-        Write-Host "`nContainer logs:" -ForegroundColor Yellow
-        podman compose -f docker-compose.test.yml logs --tail=50
-        exit 1
-    }
-    
-    Start-Sleep -Seconds $interval
-    $waitTime += $interval
+# 4. Wait for Spring Boot to report UP on /actuator/health
+#    compose up -d only waits for the DB to be healthy; the app still needs 30-100s to start.
+Write-Host "`nStep 3: Waiting for application to be ready..." -ForegroundColor Yellow
+pnpm run compose-wait
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nContainer logs:" -ForegroundColor Yellow
+    podman compose -f docker-compose.test.yml logs --tail=50
+    exit 1
 }
-
-# Additional wait to ensure Spring Boot is fully started
-Write-Host "`nWaiting an additional 10 seconds to ensure application is fully started..." -ForegroundColor Yellow
-Start-Sleep -Seconds 10
 
 # 5. Execute tests
 Write-Host "`nStep 4: Executing E2E tests..." -ForegroundColor Yellow

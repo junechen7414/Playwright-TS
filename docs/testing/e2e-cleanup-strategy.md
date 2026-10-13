@@ -71,7 +71,7 @@ pnpm run test:e2e:ci
 **腳本會自動執行**：
 1. 停止並刪除現有容器和 volumes
 2. 重新啟動測試環境
-3. 等待服務健康檢查（最多 5 分鐘）
+3. 等待 app 在 `/actuator/health` 回報 UP（`pnpm run compose-wait`，預設最多 180 秒）
 4. 執行測試
 5. 顯示測試結果和日誌
 
@@ -104,7 +104,8 @@ export default defineConfig({
     "test:e2e:ci": "完整的 CI/CD 測試流程（容器重啟）",
     "compose-up": "啟動測試環境",
     "compose-down": "停止並刪除測試環境",
-    "compose-restart": "重啟測試環境"
+    "compose-restart": "重啟測試環境",
+    "compose-wait": "等待 app 回報 UP"
   }
 }
 ```
