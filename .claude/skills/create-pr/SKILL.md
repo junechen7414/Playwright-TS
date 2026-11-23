@@ -2,7 +2,7 @@
 name: create-pr
 description: 為高風險變更開分支、建立 PR、加 label，並以 rebase merge 合併與清理分支。
 disable-model-invocation: true
-argument-hint: [變更簡述]
+argument-hint: '[變更簡述]'
 ---
 # 建立 PR（create-pr）
 

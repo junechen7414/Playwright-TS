@@ -111,11 +111,18 @@ fixture 分兩種：
 
 ## Skills 與工作流程
 
-| 情境 | Skill |
+本 repo 隨附下列三個 `.claude/skills/` skills；其他工具是否載入它們，仍以本次 session 的實際能力為準。
+
+| 情境 | 專案隨附的 Skill |
 |---|---|
 | CI 紅了，或拿到 `playwright-report` artifact | `ci-triage` |
 | 本機容器、DB、連線問題 | `env-troubleshoot` |
 | 高風險變更要開 PR | `/create-pr` |
+
+下列是選用的個人外掛流程，不隨 clone 安裝，名稱也可能隨工具或版本改變。呼叫前先核對本次 session 的可用 skills；缺少時依本文件完成相同工作，不猜替代名稱，也不擅自安裝或搬入其他 repo 的 skills。
+
+| 情境 | 選用的 Skill／工作流程 |
+|---|---|
 | 難解的 bug 或 flaky test | `diagnosing-bugs` |
 | 改完後的獨立審查 | `/mattpocock-skills:code-review` |
 | 新功能 | `/grill-with-docs` → `/to-spec` → `/to-tickets` → `/implement` |
